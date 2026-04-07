@@ -1,27 +1,23 @@
 import React, { useEffect, useState } from 'react';
 import {
   View, Text, TextInput, TouchableOpacity,
-  StyleSheet, ScrollView, Alert
+  StyleSheet, ScrollView, Alert, StatusBar
 } from 'react-native';
-import { SafeAreaProvider, useSafeAreaInsets } from 'react-native-safe-area-context';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { ScreenWrapper } from './src/ui/components/ScreenWrapper';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Themes, ThemeKey } from './src/config/Themes';
 import { DashboardScreen } from './src/ui/screens/DashboardScreen';
+import { LoginScreen } from './src/ui/screens/LoginScreen';
 
 const ROOM_KEY = '@versus_room_id';
 const THEME_KEY = '@versus_selected_theme';
 
 const MainContent = () => {
-  const insets = useSafeAreaInsets();
-  console.log('Márgenes medidos:', insets); // <-- Revisar márgenes del dispositivo
 
-  const [username, setUsername] = useState('');
-  const [roomCode, setRoomCode] = useState('');
   const [selectedTheme, setSelectedTheme] = useState<ThemeKey>('theme-win95');
   const [roomId, setRoomId] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-
-  const currentTheme = Themes[selectedTheme];
 
   useEffect(() => {
     const loadSession = async () => {
@@ -34,23 +30,16 @@ const MainContent = () => {
     loadSession();
   }, []);
 
-  const handleJoin = async () => {
-    if (!username || !roomCode) {
-      Alert.alert("Campos incompletos", "Por favor ingresa tu usuario y el código de sala.");
-      return;
-    }
-    const fullRoomId = `${username.trim().toLowerCase()}-${roomCode.trim().toLowerCase()}`;
-
-    await AsyncStorage.setItem(ROOM_KEY, fullRoomId);
-    await AsyncStorage.setItem(THEME_KEY, selectedTheme);
-    setRoomId(fullRoomId);
+  const handleJoin = async (newRoomId: string, theme: ThemeKey) => {
+    await AsyncStorage.setItem(ROOM_KEY, newRoomId);
+    await AsyncStorage.setItem(THEME_KEY, theme);
+    setRoomId(newRoomId);
+    setSelectedTheme(theme);
   };
 
   const handleLogout = async () => {
     await AsyncStorage.clear();
     setRoomId(null);
-    setUsername('');
-    setRoomCode('');
   };
 
   if (isLoading) return null;
@@ -68,65 +57,10 @@ const MainContent = () => {
 
   // --- VISTA: LOGIN TEMATIZADO ---
   return (
-    <View style={[
-      styles.container,
-      {
-        backgroundColor: currentTheme.background,
-        paddingTop: insets.top,
-        paddingBottom: insets.bottom,
-        paddingLeft: insets.left,
-        paddingRight: insets.right
-      }
-    ]}>
-      <ScrollView contentContainerStyle={styles.loginContent}>
-        <Text style={[styles.title, { color: currentTheme.text }]}>ScoreVS Mobile</Text>
-
-        <View style={[styles.card, { backgroundColor: currentTheme.card }]}>
-          <Text style={[styles.label, { color: currentTheme.text }]}>Usuario:</Text>
-          <TextInput
-            style={[styles.input, { backgroundColor: currentTheme.inputBg, color: currentTheme.text }]}
-            placeholder="fefemz"
-            placeholderTextColor="#888"
-            value={username}
-            onChangeText={setUsername}
-          />
-
-          <Text style={[styles.label, { color: currentTheme.text }]}>Código de Sala:</Text>
-          <TextInput
-            style={[styles.input, { backgroundColor: currentTheme.inputBg, color: currentTheme.text }]}
-            placeholder="9k1d"
-            placeholderTextColor="#888"
-            value={roomCode}
-            onChangeText={setRoomCode}
-          />
-
-          <Text style={[styles.label, { color: currentTheme.text }]}>Selecciona tu Estilo:</Text>
-          <View style={styles.themeSelector}>
-            {(Object.keys(Themes) as ThemeKey[]).map((t) => (
-              <TouchableOpacity
-                key={t}
-                style={[
-                  styles.themeBtn,
-                  { borderColor: selectedTheme === t ? currentTheme.primary : 'transparent' }
-                ]}
-                onPress={() => setSelectedTheme(t)}
-              >
-                <Text style={{ color: currentTheme.text, fontSize: 12 }}>
-                  {t.replace('theme-', '').toUpperCase()}
-                </Text>
-              </TouchableOpacity>
-            ))}
-          </View>
-
-          <TouchableOpacity
-            style={[styles.mainBtn, { backgroundColor: currentTheme.primary }]}
-            onPress={handleJoin}
-          >
-            <Text style={styles.btnText}>ENTRAR A LA SALA</Text>
-          </TouchableOpacity>
-        </View>
-      </ScrollView>
-    </View>
+    <LoginScreen 
+      onLogin={handleJoin} 
+      defaultTheme={selectedTheme} 
+    />
   );
 };
 

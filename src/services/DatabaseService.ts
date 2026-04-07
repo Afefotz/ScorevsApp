@@ -14,16 +14,11 @@ export interface SettingsData {
 class DatabaseService {
   private db = database();
 
-  // Pedimos el roomId para saber a qué sala conectarnos
   listenToPlayers(roomId: string, callback: (players: any) => void) {
     const reference = this.db.ref(`/rooms/${roomId}`);
     reference.on('value', snapshot => {
       const data = snapshot.val();
-      // Verificamos si realmente no hay datos, o si p1 y p2 no existen
-      if (!data || (!data.p1 && !data.p2)) {
-        this.initializeRoom(roomId);
-      } else {
-        // Le mandamos al componente solo los datos que espera
+      if (data && (data.p1 || data.p2)) {
         callback({ p1: data.p1, p2: data.p2 });
       }
     });
@@ -31,7 +26,12 @@ class DatabaseService {
     return () => reference.off('value');
   }
 
-  initializeRoom(roomId: string) {
+  async checkRoomExists(roomId: string): Promise<boolean> {
+    const snapshot = await this.db.ref(`/rooms/${roomId}`).once('value');
+    return snapshot.exists();
+  }
+
+  public initializeRoom(roomId: string) {
     this.db.ref(`/rooms/${roomId}`).update({
       p1: { name: 'Jugador 1', score: 0, photo: "" },
       p2: { name: 'Jugador 2', score: 0, photo: "" }

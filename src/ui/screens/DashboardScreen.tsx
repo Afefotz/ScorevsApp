@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { ScreenWrapper } from '../components/ScreenWrapper';
 import { dbService, PlayerData } from '../../services/DatabaseService';
 import { ThemeKey, Themes } from '../../config/Themes';
 import { PlayerCard } from '../components/PlayerCard';
@@ -12,8 +12,6 @@ interface DashboardScreenProps {
 }
 
 export const DashboardScreen = ({ roomId, theme, onLogout }: DashboardScreenProps) => {
-  const insets = useSafeAreaInsets();
-
   const currentTheme = Themes[theme] || Themes['theme-win95'];
   const [players, setPlayers] = useState<{ p1: PlayerData, p2: PlayerData } | null>(null);
 
@@ -44,16 +42,7 @@ export const DashboardScreen = ({ roomId, theme, onLogout }: DashboardScreenProp
   }
 
   return (
-    <View style={[
-      styles.container,
-      {
-        backgroundColor: currentTheme.background,
-        paddingTop: insets.top,
-        paddingBottom: insets.bottom,
-        paddingLeft: insets.left,
-        paddingRight: insets.right
-      }
-    ]}>
+    <ScreenWrapper style={{ backgroundColor: currentTheme.background }}>
       {/* HEADER DE LA SALA */}
       <View style={[styles.header, { borderBottomColor: currentTheme.primary }]}>
         <View>
@@ -89,15 +78,11 @@ export const DashboardScreen = ({ roomId, theme, onLogout }: DashboardScreenProp
           onScoreChange={(change) => handleScoreChange('p2', change, players.p2?.score || 0)}
         />
       </ScrollView>
-
-    </View>
+    </ScreenWrapper>
   );
 };
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
   loadingContainer: {
     flex: 1,
     justifyContent: 'center',
