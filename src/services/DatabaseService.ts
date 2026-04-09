@@ -3,12 +3,18 @@ import database from '@react-native-firebase/database';
 export interface PlayerData {
   name: string;
   score: number;
+  photo?: string;
 }
 
 export interface SettingsData {
   theme: string;
+  variant: string;
   accentColor: string;
-  // ***Aquí voy agregar opacidad, verticalMode, etc. en el futuro
+  opacity: number;
+  verticalMode: boolean;
+  showPhotos: boolean;
+  swapPlayers: boolean;
+  customTitle: string;
 }
 
 class DatabaseService {
@@ -23,6 +29,14 @@ class DatabaseService {
       }
     });
 
+    return () => reference.off('value');
+  }
+
+  listenToRoom(roomId: string, callback: (data: any) => void) {
+    const reference = this.db.ref(`/rooms/${roomId}`);
+    reference.on('value', snapshot => {
+      callback(snapshot.val());
+    });
     return () => reference.off('value');
   }
 
@@ -56,18 +70,19 @@ class DatabaseService {
   listenToSettings(roomId: string, callback: (settings: SettingsData) => void) {
     const reference = this.db.ref(`/rooms/${roomId}/settings`);
     reference.on('value', snapshot => {
-      if (snapshot.val()) {
-        callback(snapshot.val());
-      }
+      callback(snapshot.val() || {} as SettingsData);
     });
     return () => reference.off('value');
   }
 
-  // Actualizar el tema visual en Firebase para que OBS reaccione
+  // Actualizar cualquier ajuste de la sala (tema, opacidad, orientación, etc.)
+  updateSettings(roomId: string, settings: Partial<SettingsData>) {
+    return this.db.ref(`/rooms/${roomId}/settings`).update(settings);
+  }
+
+  // Actualizar el tema visual (usando el nuevo método genérico)
   updateTheme(roomId: string, newTheme: string) {
-    return this.db.ref(`/rooms/${roomId}/settings`).update({
-      theme: newTheme,
-    });
+    return this.updateSettings(roomId, { theme: newTheme });
   }
 }
 

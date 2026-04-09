@@ -1,9 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
 import { ScreenWrapper } from '../components/ScreenWrapper';
-import { dbService, PlayerData } from '../../services/DatabaseService';
+import { dbService, PlayerData, SettingsData } from '../../services/DatabaseService';
 import { ThemeKey, Themes } from '../../config/Themes';
 import { PlayerCard } from '../components/PlayerCard';
+import { OverlaySettingsModal } from '../components/OverlaySettingsModal';
 
 interface DashboardScreenProps {
   roomId: string;
@@ -13,16 +14,19 @@ interface DashboardScreenProps {
 
 export const DashboardScreen = ({ roomId, theme, onLogout }: DashboardScreenProps) => {
   const currentTheme = Themes[theme] || Themes['theme-win95'];
-  const [players, setPlayers] = useState<{ p1: PlayerData, p2: PlayerData } | null>(null);
+  const [roomData, setRoomData] = useState<{ 
+    p1: PlayerData, 
+    p2: PlayerData, 
+    settings: SettingsData 
+  } | null>(null);
+  const [isSettingsVisible, setIsSettingsVisible] = useState(false);
 
   useEffect(() => {
-    const unsubscribePlayers = dbService.listenToPlayers(roomId, (data) => {
-      setPlayers(data);
+    const reference = dbService.listenToRoom(roomId, (data) => {
+      setRoomData(data);
     });
 
-    return () => {
-      unsubscribePlayers();
-    };
+    return () => reference();
   }, [roomId]);
 
   const handleNameChange = (playerId: string, newName: string) => {
@@ -33,7 +37,7 @@ export const DashboardScreen = ({ roomId, theme, onLogout }: DashboardScreenProp
     dbService.updateScore(roomId, playerId, currentScore, change);
   };
 
-  if (!players) {
+  if (!roomData) {
     return (
       <View style={[styles.loadingContainer, { backgroundColor: currentTheme.background }]}>
         <Text style={{ color: currentTheme.text, fontSize: 18, fontWeight: 'bold' }}>Sincronizando sala...</Text>
@@ -49,20 +53,37 @@ export const DashboardScreen = ({ roomId, theme, onLogout }: DashboardScreenProp
           <Text style={[styles.roomLabel, { color: currentTheme.text }]}>SALA ACTIVA</Text>
           <Text style={[styles.roomInfo, { color: currentTheme.primary }]}>{roomId}</Text>
         </View>
-        <TouchableOpacity onPress={onLogout} style={styles.logoutBtn}>
-          <Text style={styles.logoutText}>SALIR</Text>
-        </TouchableOpacity>
+        <View style={styles.headerRight}>
+          <TouchableOpacity 
+            onPress={() => setIsSettingsVisible(true)} 
+            style={[styles.settingsBtn, { borderColor: currentTheme.primary }]}
+          >
+            <Text style={[styles.settingsIcon, { color: currentTheme.text }]}>⚙️</Text>
+          </TouchableOpacity>
+          <TouchableOpacity onPress={onLogout} style={styles.logoutBtn}>
+            <Text style={styles.logoutText}>SALIR</Text>
+          </TouchableOpacity>
+        </View>
       </View>
+
+      <OverlaySettingsModal
+        isVisible={isSettingsVisible}
+        onClose={() => setIsSettingsVisible(false)}
+        roomId={roomId}
+        currentThemeKey={theme}
+      />
 
       {/* CUERPO PRINCIPAL {marcadores} */}
       <ScrollView contentContainerStyle={styles.content}>
         <PlayerCard
           playerId="p1"
-          name={players.p1?.name || 'Jugador 1'}
-          score={players.p1?.score || 0}
+          name={roomData.p1?.name || 'Jugador 1'}
+          score={roomData.p1?.score || 0}
+          photo={roomData.p1?.photo}
+          showPhotos={roomData.settings?.showPhotos ?? true}
           theme={theme}
           onNameChange={(newName) => handleNameChange('p1', newName)}
-          onScoreChange={(change) => handleScoreChange('p1', change, players.p1?.score || 0)}
+          onScoreChange={(change) => handleScoreChange('p1', change, roomData.p1?.score || 0)}
         />
 
         <View style={styles.vsContainer}>
@@ -71,11 +92,13 @@ export const DashboardScreen = ({ roomId, theme, onLogout }: DashboardScreenProp
 
         <PlayerCard
           playerId="p2"
-          name={players.p2?.name || 'Jugador 2'}
-          score={players.p2?.score || 0}
+          name={roomData.p2?.name || 'Jugador 2'}
+          score={roomData.p2?.score || 0}
+          photo={roomData.p2?.photo}
+          showPhotos={roomData.settings?.showPhotos ?? true}
           theme={theme}
           onNameChange={(newName) => handleNameChange('p2', newName)}
-          onScoreChange={(change) => handleScoreChange('p2', change, players.p2?.score || 0)}
+          onScoreChange={(change) => handleScoreChange('p2', change, roomData.p2?.score || 0)}
         />
       </ScrollView>
     </ScreenWrapper>
@@ -105,6 +128,20 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: '900',
     textTransform: 'uppercase',
+  },
+  headerRight: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+  },
+  settingsBtn: {
+    padding: 8,
+    borderRadius: 8,
+    borderWidth: 1,
+    backgroundColor: 'rgba(255,255,255,0.1)',
+  },
+  settingsIcon: {
+    fontSize: 20,
   },
   logoutBtn: {
     paddingVertical: 8,
