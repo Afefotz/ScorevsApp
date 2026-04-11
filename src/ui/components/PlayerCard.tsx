@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, Image } from 'react-native';
-import { ThemeKey, Themes } from '../../config/Themes';
+import { ThemeKey } from '../../config/Themes';
+import { useTheme } from '../../hooks/useTheme';
 
 interface PlayerCardProps {
   playerId: string;
@@ -13,14 +14,14 @@ interface PlayerCardProps {
   onScoreChange: (change: number) => void;
 }
 
-export const PlayerCard = ({ playerId, name, score, photo, showPhotos, theme, onNameChange, onScoreChange }: PlayerCardProps) => {
-  const currentTheme = Themes[theme];
+export const PlayerCard = ({
+  playerId, name, score, photo, showPhotos, theme, onNameChange, onScoreChange,
+}: PlayerCardProps) => {
+  const tk = useTheme(theme);
   const [localName, setLocalName] = useState(name);
 
-  // Sincronizar el nombre si cambió desde el exterior (Firebase)
-  useEffect(() => {
-    setLocalName(name);
-  }, [name]);
+  // Sincronizar si cambió desde Firebase
+  useEffect(() => { setLocalName(name); }, [name]);
 
   const handleNameSubmit = () => {
     if (localName.trim() !== name) {
@@ -29,41 +30,50 @@ export const PlayerCard = ({ playerId, name, score, photo, showPhotos, theme, on
   };
 
   return (
-    <View style={[styles.card, { backgroundColor: currentTheme.card, borderColor: currentTheme.primary }]}>
+    <View style={[
+      styles.card,
+      {
+        backgroundColor: tk.card,
+        borderColor: tk.primary,
+        borderRadius: tk.cardBorderRadius,
+        elevation: tk.cardElevation,
+        shadowColor: tk.cardShadowColor,
+      },
+    ]}>
       {showPhotos && photo ? (
-        <View style={[styles.photoContainer, { borderColor: currentTheme.primary }]}>
-          <Image 
+        <View style={[styles.photoContainer, { borderColor: tk.primary }]}>
+          <Image
             key={`photo-${showPhotos}`}
-            source={{ uri: photo }} 
-            style={styles.playerPhoto} 
+            source={{ uri: photo }}
+            style={styles.playerPhoto}
             resizeMode="cover"
           />
         </View>
       ) : null}
-      
+
       <TextInput
-        style={[styles.nameInput, { color: currentTheme.text, backgroundColor: currentTheme.inputBg }]}
+        style={[styles.nameInput, { color: tk.text, backgroundColor: tk.inputBg }]}
         value={localName}
         onChangeText={setLocalName}
         onEndEditing={handleNameSubmit}
         selectTextOnFocus
       />
-      
+
       <View style={styles.scoreContainer}>
-        <TouchableOpacity 
-          style={[styles.scoreBtn, { backgroundColor: currentTheme.primary }]}
+        <TouchableOpacity
+          style={[styles.scoreBtn, { backgroundColor: tk.primary }]}
           onPress={() => onScoreChange(-1)}
         >
-          <Text style={[styles.btnText, { color: currentTheme.background }]}>-1</Text>
+          <Text style={[styles.btnText, { color: tk.background }]}>-1</Text>
         </TouchableOpacity>
-        
-        <Text style={[styles.scoreText, { color: currentTheme.text }]}>{score}</Text>
-        
-        <TouchableOpacity 
-          style={[styles.scoreBtn, { backgroundColor: currentTheme.primary }]}
+
+        <Text style={[styles.scoreText, { color: tk.text }]}>{score}</Text>
+
+        <TouchableOpacity
+          style={[styles.scoreBtn, { backgroundColor: tk.primary }]}
           onPress={() => onScoreChange(1)}
         >
-          <Text style={[styles.btnText, { color: currentTheme.background }]}>+1</Text>
+          <Text style={[styles.btnText, { color: tk.background }]}>+1</Text>
         </TouchableOpacity>
       </View>
     </View>
@@ -73,12 +83,9 @@ export const PlayerCard = ({ playerId, name, score, photo, showPhotos, theme, on
 const styles = StyleSheet.create({
   card: {
     padding: 20,
-    borderRadius: 12,
     borderWidth: 2,
     marginBottom: 20,
     alignItems: 'center',
-    elevation: 4,
-    shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.3,
     shadowRadius: 3,
@@ -106,31 +113,14 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.3,
     shadowRadius: 3,
   },
-  playerPhoto: {
-    width: '100%',
-    height: '100%',
-  },
+  playerPhoto: { width: '100%', height: '100%' },
   scoreContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
   },
   scoreBtn: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginHorizontal: 15,
+    width: 60, height: 60, borderRadius: 30,
+    justifyContent: 'center', alignItems: 'center', marginHorizontal: 15,
   },
-  btnText: {
-    fontSize: 28,
-    fontWeight: 'bold',
-  },
-  scoreText: {
-    fontSize: 70,
-    fontWeight: 'bold',
-    minWidth: 90,
-    textAlign: 'center',
-  }
+  btnText:   { fontSize: 28, fontWeight: 'bold' },
+  scoreText: { fontSize: 70, fontWeight: 'bold', minWidth: 90, textAlign: 'center' },
 });
