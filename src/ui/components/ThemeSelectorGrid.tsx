@@ -77,9 +77,10 @@ const ThemeCell: React.FC<ThemeCellProps> = React.memo(
       switch (activeMode) {
         case 'win95':
           return {
-            backgroundColor: isSelected ? '#000080' : config.background,
+            // In Win95 mode, buttons are ALWAYS gray (#c0c0c0) unless selected.
+            // Using config.background (black for neon) makes it invisible.
+            backgroundColor: isSelected ? '#000080' : '#c0c0c0',
             borderRadius: 0,
-            // Bevel: raised border simulated via borderTopColor etc.
             borderTopWidth: 2, borderLeftWidth: 2, borderRightWidth: 2, borderBottomWidth: 2,
             borderTopColor: isSelected ? '#808080' : '#fff',
             borderLeftColor: isSelected ? '#808080' : '#fff',
@@ -90,12 +91,11 @@ const ThemeCell: React.FC<ThemeCellProps> = React.memo(
           };
         case 'neon':
           return {
-            backgroundColor: isSelected ? 'rgba(0,255,255,0.08)' : 'rgba(10,10,20,0.9)',
+            backgroundColor: isSelected ? 'rgba(0,255,255,0.08)' : 'rgba(10,10,20,0.95)',
             borderRadius: 0,
             borderWidth: 1,
-            borderColor: isSelected ? '#0ff' : 'rgba(0,255,255,0.25)',
-            // Glow shadow
-            shadowColor: isSelected ? '#0ff' : 'transparent',
+            borderColor: isSelected ? config.primary : 'rgba(0,255,255,0.15)',
+            shadowColor: isSelected ? config.primary : 'transparent',
             shadowOffset: { width: 0, height: 0 },
             shadowOpacity: isSelected ? 0.9 : 0,
             shadowRadius: isSelected ? 12 : 0,
@@ -103,10 +103,10 @@ const ThemeCell: React.FC<ThemeCellProps> = React.memo(
           };
         case 'metal':
           return {
-            backgroundColor: config.card,
-            borderRadius: 4,
+            backgroundColor: isSelected ? 'rgba(255, 215, 0, 0.1)' : '#34495e',
+            borderRadius: 6,
             borderWidth: 1,
-            borderColor: isSelected ? 'rgba(255,255,255,0.35)' : 'rgba(0,0,0,0.4)',
+            borderColor: isSelected ? config.primary : 'rgba(0,0,0,0.4)',
             shadowColor: '#000',
             shadowOffset: { width: 0, height: isSelected ? 4 : 2 },
             shadowOpacity: isSelected ? 0.55 : 0.3,
@@ -130,27 +130,27 @@ const ThemeCell: React.FC<ThemeCellProps> = React.memo(
           return {
             color: isSelected ? '#fff' : '#000',
             fontSize: 9,
-            letterSpacing: 0,
+            letterSpacing: 0.1,
             fontWeight: '700' as const,
           };
         case 'neon':
           return {
-            color: isSelected ? '#0ff' : 'rgba(0,255,255,0.5)',
+            color: isSelected ? config.primary : 'rgba(0,255,255,0.5)',
             fontSize: 9,
-            letterSpacing: 1.5,
-            fontWeight: '700' as const,
-            textShadowColor: isSelected ? '#0ff' : 'transparent',
+            letterSpacing: 1.2,
+            fontWeight: '900' as const,
+            textShadowColor: isSelected ? config.primary : 'transparent',
             textShadowOffset: { width: 0, height: 0 },
             textShadowRadius: isSelected ? 6 : 0,
             fontFamily: Platform.OS === 'android' ? 'monospace' : 'Courier New',
           };
         case 'metal':
           return {
-            color: '#e0e5ec',
+            color: isSelected ? config.primary : '#e0e5ec',
             fontSize: 9,
             letterSpacing: 1,
             fontWeight: '900' as const,
-            textShadowColor: 'rgba(255,255,255,0.5)',
+            textShadowColor: isSelected ? 'rgba(255,215,0,0.3)' : 'rgba(255,255,255,0.1)',
             textShadowOffset: { width: 1, height: 1 },
             textShadowRadius: 1,
           };

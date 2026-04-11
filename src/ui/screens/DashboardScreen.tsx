@@ -2,8 +2,9 @@ import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
 import { ScreenWrapper } from '../components/ScreenWrapper';
 import { dbService, PlayerData, SettingsData } from '../../services/DatabaseService';
-import { ThemeKey } from '../../config/Themes';
+import { Themes, ThemeKey } from '../../config/Themes';
 import { useTheme } from '../../hooks/useTheme';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { PlayerCard } from '../components/PlayerCard';
 import { OverlaySettingsModal } from '../components/OverlaySettingsModal';
 
@@ -11,10 +12,10 @@ interface DashboardScreenProps {
   roomId: string;
   theme: ThemeKey;
   onLogout: () => void;
+  onThemeChange: (theme: ThemeKey) => void;
 }
 
-export const DashboardScreen = ({ roomId, theme, onLogout }: DashboardScreenProps) => {
-  const tk = useTheme(theme);
+export const DashboardScreen = ({ roomId, theme, onLogout, onThemeChange }: DashboardScreenProps) => {
   const [roomData, setRoomData] = useState<{
     p1: PlayerData;
     p2: PlayerData;
@@ -26,6 +27,21 @@ export const DashboardScreen = ({ roomId, theme, onLogout }: DashboardScreenProp
     const reference = dbService.listenToRoom(roomId, (data) => { setRoomData(data); });
     return () => reference();
   }, [roomId]);
+
+  // --- LÓGICA DE TEMA DINÁMICO ---
+  const activeThemeKey = (roomData?.settings?.theme && Themes[roomData.settings.theme as ThemeKey])
+    ? (roomData.settings.theme as ThemeKey)
+    : theme;
+
+  const tk = useTheme(activeThemeKey);
+
+  // Persistir el tema si cambió en Firebase y notificar al App
+  useEffect(() => {
+    if (activeThemeKey) {
+      AsyncStorage.setItem('@versus_selected_theme', activeThemeKey);
+      onThemeChange(activeThemeKey);
+    }
+  }, [activeThemeKey, onThemeChange]);
 
   const handleNameChange  = (playerId: string, newName: string) =>
     dbService.updatePlayerName(roomId, playerId, newName);
@@ -68,7 +84,7 @@ export const DashboardScreen = ({ roomId, theme, onLogout }: DashboardScreenProp
         isVisible={isSettingsVisible}
         onClose={() => setIsSettingsVisible(false)}
         roomId={roomId}
-        currentThemeKey={theme}
+        currentThemeKey={activeThemeKey}
       />
 
       {/* MARCADORES */}
@@ -79,7 +95,7 @@ export const DashboardScreen = ({ roomId, theme, onLogout }: DashboardScreenProp
           score={roomData.p1?.score || 0}
           photo={roomData.p1?.photo}
           showPhotos={roomData.settings?.showPhotos ?? true}
-          theme={theme}
+          theme={activeThemeKey}
           onNameChange={(newName) => handleNameChange('p1', newName)}
           onScoreChange={(change) => handleScoreChange('p1', change, roomData.p1?.score || 0)}
         />
@@ -94,7 +110,7 @@ export const DashboardScreen = ({ roomId, theme, onLogout }: DashboardScreenProp
           score={roomData.p2?.score || 0}
           photo={roomData.p2?.photo}
           showPhotos={roomData.settings?.showPhotos ?? true}
-          theme={theme}
+          theme={activeThemeKey}
           onNameChange={(newName) => handleNameChange('p2', newName)}
           onScoreChange={(change) => handleScoreChange('p2', change, roomData.p2?.score || 0)}
         />

@@ -9,6 +9,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Themes, ThemeKey } from './src/config/Themes';
 import { DashboardScreen } from './src/ui/screens/DashboardScreen';
 import { LoginScreen } from './src/ui/screens/LoginScreen';
+import { dbService } from './src/services/DatabaseService';
 
 const ROOM_KEY = '@versus_room_id';
 const THEME_KEY = '@versus_selected_theme';
@@ -31,6 +32,9 @@ const MainContent = () => {
   }, []);
 
   const handleJoin = async (newRoomId: string, theme: ThemeKey) => {
+    // Sincronizar el tema elegido con Firebase para que el dashboard lo use
+    await dbService.updateTheme(newRoomId, theme);
+    
     await AsyncStorage.setItem(ROOM_KEY, newRoomId);
     await AsyncStorage.setItem(THEME_KEY, theme);
     setRoomId(newRoomId);
@@ -38,7 +42,8 @@ const MainContent = () => {
   };
 
   const handleLogout = async () => {
-    await AsyncStorage.clear();
+    // Solo borramos la sala, preservamos el tema elegido para el login
+    await AsyncStorage.removeItem(ROOM_KEY);
     setRoomId(null);
   };
 
@@ -51,6 +56,7 @@ const MainContent = () => {
         roomId={roomId}
         theme={selectedTheme}
         onLogout={handleLogout}
+        onThemeChange={setSelectedTheme}
       />
     );
   }
