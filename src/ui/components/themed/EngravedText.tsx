@@ -4,12 +4,12 @@
  * Reutilizable en LoginScreen, DashboardScreen, etc.
  */
 import React from 'react';
-import { View, Text, ViewStyle, TextStyle } from 'react-native';
+import { View, Text, ViewStyle, TextStyle, StyleProp } from 'react-native';
 
 interface EngravedTextProps {
   text: string;
-  style?: ViewStyle;
-  textStyle?: TextStyle;
+  style?: StyleProp<ViewStyle>;
+  textStyle?: StyleProp<TextStyle>;
 }
 
 export const EngravedText = React.memo<EngravedTextProps>(

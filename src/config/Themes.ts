@@ -1,9 +1,11 @@
 // ─── Tipos base ───────────────────────────────────────────────────────────────
+import { Platform } from 'react-native';
 
 export interface ThemeVariant {
   id: string;
   label: string;
   color: string;
+  overrides?: Partial<ThemeConfig>;
 }
 
 export interface ThemeConfig {
@@ -85,8 +87,13 @@ export interface ThemeConfig {
   hasBevel: boolean;
   /** Neon: aplica decoradores de scanlines */
   hasScanlines: boolean;
-  /** Metal: aplica efecto de texto grabado */
   hasEngravedText: boolean;
+  // ── Tipografía (Nuevo) ────────────────────────────────────────────────────
+  fontFamily: string;
+  textTransform: 'none' | 'uppercase' | 'lowercase';
+  textShadowColor: string;
+  textShadowOffset: { width: number; height: number };
+  textShadowRadius: number;
 }
 
 /**
@@ -191,6 +198,11 @@ export const Themes: Record<string, ThemeConfig> = {
     hasBevel: true,
     hasScanlines: false,
     hasEngravedText: false,
+    fontFamily: 'System',
+    textTransform: 'none',
+    textShadowColor: 'transparent',
+    textShadowOffset: { width: 0, height: 0 },
+    textShadowRadius: 0,
     variants: [
       { id: 'Clásico Win95', label: 'Clásico Win95', color: '#c0c0c0' },
     ],
@@ -265,10 +277,21 @@ export const Themes: Record<string, ThemeConfig> = {
     hasBevel: false,
     hasScanlines: true,
     hasEngravedText: false,
+    fontFamily: Platform.OS === 'android' ? 'monospace' : 'Courier',
+    textTransform: 'uppercase',
+    textShadowColor: '#00f3ff', // Se sobreescribe en variantes
+    textShadowOffset: { width: 0, height: 0 },
+    textShadowRadius: 6,
     variants: [
       { id: 'Cian (Por defecto)', label: 'Cian', color: '#00ffff' },
-      { id: 'Rosa Neón', label: 'Rosa', color: '#ff00ff' },
-      { id: 'Verde Tóxico', label: 'Verde', color: '#39ff14' },
+      { 
+        id: 'Rosa Neón', label: 'Rosa', color: '#ff00ff',
+        overrides: { primary: '#ff00ff', cardBorderColor: '#ff00ff', cardShadowColor: '#ff00ff', inputBorderColor: '#ff00ff', inputGlowColor: '#ff00ff', labelColor: '#ff00ff', btnBorderColor: '#ff00ff', headerBorderBottomColor: '#00ffff', textShadowColor: '#ff00ff' }
+      },
+      { 
+        id: 'Verde Tóxico', label: 'Verde', color: '#39ff14',
+        overrides: { primary: '#39ff14', cardBorderColor: '#39ff14', cardShadowColor: '#39ff14', inputBorderColor: '#39ff14', inputGlowColor: '#39ff14', labelColor: '#39ff14', btnBorderColor: '#39ff14', headerBorderBottomColor: '#39ff14', textShadowColor: '#39ff14' }
+      },
     ],
   },
 
@@ -282,8 +305,14 @@ export const Themes: Record<string, ThemeConfig> = {
     font: 'System',
     variants: [
       { id: 'Acero Plateado', label: 'Acero', color: '#bdc3c7' },
-      { id: 'Oro Imperial',  label: 'Oro',   color: '#ffd700' },
-      { id: 'Bronce Antiguo',label: 'Bronce',color: '#cd7f32' },
+      { 
+        id: 'Oro Imperial',  label: 'Oro',   color: '#ffd700',
+        overrides: { primary: '#ffd700', screenBg: '#2c2205', headerBg: 'rgba(255,215,0,0.1)', btnBg: '#ffd700', btnTextColor: '#000000', modeActiveBg: '#ffd700', modeActiveTextColor: '#000000' }
+      },
+      { 
+        id: 'Bronce Antiguo',label: 'Bronce',color: '#cd7f32',
+        overrides: { primary: '#cd7f32', screenBg: '#2a1a0e', headerBg: 'rgba(205,127,50,0.1)', btnBg: '#cd7f32', btnTextColor: '#ffffff', modeActiveBg: '#cd7f32', modeActiveTextColor: '#ffffff' }
+      },
     ],
 
     // — Pantalla —
@@ -346,6 +375,11 @@ export const Themes: Record<string, ThemeConfig> = {
     hasBevel: false,
     hasScanlines: false,
     hasEngravedText: true,
+    fontFamily: 'System',
+    textTransform: 'uppercase',
+    textShadowColor: 'rgba(0,0,0,0.6)',
+    textShadowOffset: { width: 1, height: 1 },
+    textShadowRadius: 1,
   },
   
   'theme-modern': {
@@ -354,13 +388,22 @@ export const Themes: Record<string, ThemeConfig> = {
     primary: '#e0e0e0',
     text: '#ffffff',
     inputBg: '#2d2d2d',
-    card: '#252528',
+    card: 'rgba(37, 37, 40, 0.85)',
     font: 'System',
     variants: [
       { id: 'Gris Claro (Por defecto)', label: 'Gris Claro', color: '#e0e0e0' },
-      { id: 'Verde Cyber', label: 'Verde Cyber', color: '#00e676' },
-      { id: 'Amarillo Eléctrico', label: 'Amarillo', color: '#ffea00' },
-      { id: 'Naranja Fuego', label: 'Naranja', color: '#ff9100' },
+      { 
+        id: 'Verde Cyber', label: 'Verde Cyber', color: '#00e676',
+        overrides: { primary: '#00e676', cardBorderColor: 'rgba(0,230,118,0.2)', inputBorderColor: 'rgba(0,230,118,0.4)', btnBg: '#00e676', modeActiveBg: '#00e676' }
+      },
+      { 
+        id: 'Amarillo Eléctrico', label: 'Amarillo', color: '#ffea00',
+        overrides: { primary: '#ffea00', cardBorderColor: 'rgba(255,234,0,0.2)', inputBorderColor: 'rgba(255,234,0,0.4)', btnBg: '#ffea00', modeActiveBg: '#ffea00' }
+      },
+      { 
+        id: 'Naranja Fuego', label: 'Naranja', color: '#ff9100',
+        overrides: { primary: '#ff9100', cardBorderColor: 'rgba(255,145,0,0.2)', inputBorderColor: 'rgba(255,145,0,0.4)', btnBg: '#ff9100', modeActiveBg: '#ff9100' }
+      },
     ],
 
     // — Pantalla —
@@ -423,6 +466,11 @@ export const Themes: Record<string, ThemeConfig> = {
     hasBevel: false,
     hasScanlines: false,
     hasEngravedText: false,
+    fontFamily: 'System',
+    textTransform: 'none',
+    textShadowColor: 'transparent',
+    textShadowOffset: { width: 0, height: 0 },
+    textShadowRadius: 0,
   },
 
   'theme-modern-light': {
@@ -435,8 +483,14 @@ export const Themes: Record<string, ThemeConfig> = {
     font: 'System',
     variants: [
       { id: 'Gris Oscuro (Por defecto)', label: 'Gris Oscuro', color: '#333333' },
-      { id: 'Azul Rey', label: 'Azul Rey', color: '#2979ff' },
-      { id: 'Morado Profundo', label: 'Morado', color: '#651fff' },
+      { 
+        id: 'Azul Rey', label: 'Azul Rey', color: '#2979ff',
+        overrides: { primary: '#2979ff', btnBg: '#2979ff', btnTextColor: '#ffffff', modeActiveBg: '#2979ff', modeActiveTextColor: '#ffffff' }
+      },
+      { 
+        id: 'Morado Profundo', label: 'Morado', color: '#651fff',
+        overrides: { primary: '#651fff', btnBg: '#651fff', btnTextColor: '#ffffff', modeActiveBg: '#651fff', modeActiveTextColor: '#ffffff' }
+      },
     ],
 
     // — Pantalla —
@@ -499,6 +553,11 @@ export const Themes: Record<string, ThemeConfig> = {
     hasBevel: false,
     hasScanlines: false,
     hasEngravedText: false,
+    fontFamily: 'System',
+    textTransform: 'none',
+    textShadowColor: 'transparent',
+    textShadowOffset: { width: 0, height: 0 },
+    textShadowRadius: 0,
   },
 
   'theme-pastel': {
@@ -510,10 +569,22 @@ export const Themes: Record<string, ThemeConfig> = {
     card: '#ffffff',
     font: 'System',
     variants: [
-      { id: 'Rosa Fresa', label: 'Rosa Fresa', color: '#ffb2cc' },
-      { id: 'Amarillo Vainilla', label: 'Vainilla', color: '#ebe75d' },
-      { id: 'Naranja Durazno', label: 'Durazno', color: '#fccfaf' },
-      { id: 'Verde Menta', label: 'Menta', color: '#b5ead7' },
+      { 
+        id: 'Rosa Fresa', label: 'Rosa Fresa', color: '#ffb2cc',
+        overrides: { screenBg: '#fef5f7', headerBg: '#ffb2cc', btnBg: '#ffb2cc', modeActiveBg: '#ffb2cc' }
+      },
+      { 
+        id: 'Amarillo Vainilla', label: 'Vainilla', color: '#ebe75d',
+        overrides: { primary: '#ebe75d', screenBg: '#fcfcf0', headerBg: '#ebe75d', btnBg: '#ebe75d', modeActiveBg: '#ebe75d', headerTextColor: '#5a4b4b', btnTextColor: '#5a4b4b' }
+      },
+      { 
+        id: 'Naranja Durazno', label: 'Durazno', color: '#fccfaf',
+        overrides: { primary: '#fccfaf', screenBg: '#fff5ed', headerBg: '#fccfaf', btnBg: '#fccfaf', modeActiveBg: '#fccfaf', headerTextColor: '#5a4b4b', btnTextColor: '#5a4b4b' }
+      },
+      { 
+        id: 'Verde Menta', label: 'Menta', color: '#b5ead7',
+        overrides: { primary: '#b5ead7', screenBg: '#f5fbf7', headerBg: '#b5ead7', btnBg: '#b5ead7', modeActiveBg: '#b5ead7', headerTextColor: '#5a4b4b', btnTextColor: '#5a4b4b' }
+      },
     ],
 
     // — Pantalla —
@@ -576,6 +647,11 @@ export const Themes: Record<string, ThemeConfig> = {
     hasBevel: false,
     hasScanlines: false,
     hasEngravedText: false,
+    fontFamily: 'System',
+    textTransform: 'none',
+    textShadowColor: 'transparent',
+    textShadowOffset: { width: 0, height: 0 },
+    textShadowRadius: 0,
   },
 
   'theme-stone': {
@@ -588,8 +664,14 @@ export const Themes: Record<string, ThemeConfig> = {
     font: 'System',
     variants: [
       { id: 'Gris Volcánico (Original)', label: 'Gris', color: '#666666' },
-      { id: 'Rojo Ladrillo', label: 'Ladrillo', color: '#cc5544' },
-      { id: 'Verde Musgo', label: 'Musgo', color: '#4a5d23' },
+      { 
+        id: 'Rojo Ladrillo', label: 'Ladrillo', color: '#cc5544',
+        overrides: { screenBg: '#8b4513', primary: '#cc5544', cardBorderColor: '#5d2906', headerBg: '#5d2906', btnBg: '#cc5544' }
+      },
+      { 
+        id: 'Verde Musgo', label: 'Musgo', color: '#4a5d23',
+        overrides: { screenBg: '#2d3e1a', primary: '#4a5d23', cardBorderColor: '#1b260f', headerBg: '#1b260f', btnBg: '#4a5d23' }
+      },
     ],
 
     // — Pantalla —
@@ -652,6 +734,11 @@ export const Themes: Record<string, ThemeConfig> = {
     hasBevel: false,
     hasScanlines: false,
     hasEngravedText: false,
+    fontFamily: 'serif',
+    textTransform: 'uppercase',
+    textShadowColor: 'rgba(255,255,255,0.1)',
+    textShadowOffset: { width: 1, height: 1 },
+    textShadowRadius: 2,
   },
 
   'theme-laser': {
@@ -660,13 +747,25 @@ export const Themes: Record<string, ThemeConfig> = {
     primary: '#ff0000',
     text: '#ffffff',
     inputBg: 'rgba(255,0,0,0.05)',
-    card: 'rgba(10,0,0,0.95)',
+    card: 'rgba(10,0,0,0.85)',
     font: 'System',
     variants: [
-      { id: 'Rojo Peligro', label: 'Rojo', color: '#ff0000' },
-      { id: 'Verde Radiactivo', label: 'Verde', color: '#00ff00' },
-      { id: 'Amarillo Precaución', label: 'Amarillo', color: '#ffff00' },
-      { id: 'Morado Galáctico', label: 'Morado', color: '#bf00ff' },
+      { 
+        id: 'Rojo Peligro', label: 'Rojo', color: '#ff0000',
+        overrides: { cardBorderColor: '#ff0000', inputBorderColor: '#ff0000', inputGlowColor: '#ff0000', labelColor: '#ff0000', btnBorderColor: '#ff0000', textShadowColor: '#ff0000' }
+      },
+      { 
+        id: 'Verde Radiactivo', label: 'Verde', color: '#00ff00',
+        overrides: { primary: '#00ff00', cardBorderColor: '#00ff00', inputBorderColor: '#00ff00', inputGlowColor: '#00ff00', labelColor: '#00ff00', btnBorderColor: '#00ff00', headerBorderBottomColor: '#00ff00', textShadowColor: '#00ff00' }
+      },
+      { 
+        id: 'Amarillo Precaución', label: 'Amarillo', color: '#ffff00',
+        overrides: { primary: '#ffff00', cardBorderColor: '#ffff00', inputBorderColor: '#ffff00', inputGlowColor: '#ffff00', labelColor: '#ffff00', btnBorderColor: '#ffff00', headerBorderBottomColor: '#ffff00', textShadowColor: '#ffff00' }
+      },
+      { 
+        id: 'Morado Galáctico', label: 'Morado', color: '#bf00ff',
+        overrides: { primary: '#bf00ff', cardBorderColor: '#bf00ff', inputBorderColor: '#bf00ff', inputGlowColor: '#bf00ff', labelColor: '#bf00ff', btnBorderColor: '#bf00ff', headerBorderBottomColor: '#bf00ff', textShadowColor: '#bf00ff' }
+      },
     ],
 
     // — Pantalla —
@@ -729,31 +828,57 @@ export const Themes: Record<string, ThemeConfig> = {
     hasBevel: false,
     hasScanlines: false,
     hasEngravedText: false,
+    fontFamily: Platform.OS === 'android' ? 'monospace' : 'Courier',
+    textTransform: 'uppercase',
+    textShadowColor: '#ff0000',
+    textShadowOffset: { width: 0, height: 0 },
+    textShadowRadius: 6,
   },
 
   'theme-paper': {
     // — Backward compat —
-    background: '#ffffff',
+    background: '#fdfdfd',
     primary: '#1e548f',
     text: '#333333',
-    inputBg: '#f8f8f8',
-    card: '#fdfdfd',
+    inputBg: 'rgba(255,255,255,0.5)',
+    card: 'rgba(255,255,255,0.85)',
     font: 'System',
     variants: [
       { id: 'Hoja de Cuaderno', label: 'Cuaderno', color: '#fdfdfd' },
-      { id: 'Pergamino Antiguo', label: 'Pergamino', color: '#f4e8c1' },
-      { id: 'Nota Adhesiva', label: 'Nota', color: '#fef178' },
-      { id: 'Plano Arquitectónico', label: 'Plano', color: '#1e548f' },
+      { 
+        id: 'Pergamino Antiguo', label: 'Pergamino', color: '#f4e8c1', 
+        overrides: { 
+          screenBg: '#e6d5a1', card: 'rgba(230,213,161,0.85)', background: '#e6d5a1' 
+        } 
+      },
+      { 
+        id: 'Nota Adhesiva', label: 'Nota', color: '#fef178', 
+        overrides: { 
+          screenBg: '#fef178', card: 'rgba(254,241,120,0.85)', background: '#fef178',
+          headerBg: '#e5d760', headerTextColor: '#333333', 
+          btnBg: '#e5d760', btnTextColor: '#333333',
+          modeActiveBg: '#e5d760', modeActiveTextColor: '#333333'
+        } 
+      },
+      { 
+        id: 'Plano Arquitectónico', label: 'Plano', color: '#1e548f', 
+        overrides: { 
+          screenBg: '#1e3a8a', card: 'rgba(30,58,138,0.8)', background: '#1e3a8a', 
+          text: '#ffffff', inputBg: 'rgba(255,255,255,0.15)', inputTextColor: '#ffffff', 
+          labelColor: '#93c5fd', statusBarStyle: 'light-content',
+          headerBg: '#172554', modeActiveBg: '#172554', btnBg: '#172554'
+        } 
+      },
     ],
 
     // — Pantalla —
-    screenBg: '#e0e0e0',
+    screenBg: '#fdfdfd',
 
     // — Cards —
-    cardBorderColor: 'rgba(0,0,0,0.05)',
+    cardBorderColor: 'rgba(0,0,0,0.1)',
     cardBorderWidth: 1,
-    cardBorderRadius: 4,
-    cardElevation: 3,
+    cardBorderRadius: 8,
+    cardElevation: 5,
     cardShadowColor: 'rgba(0,0,0,0.2)',
 
     // — Header —
@@ -806,6 +931,11 @@ export const Themes: Record<string, ThemeConfig> = {
     hasBevel: false,
     hasScanlines: false,
     hasEngravedText: false,
+    fontFamily: 'serif',
+    textTransform: 'none',
+    textShadowColor: 'rgba(0,0,0,0.15)',
+    textShadowOffset: { width: 0.5, height: 0.5 },
+    textShadowRadius: 1,
   },
 };
 

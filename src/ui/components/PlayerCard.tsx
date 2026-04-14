@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, Image } from 'react-native';
 import { ThemeKey } from '../../config/Themes';
 import { useTheme } from '../../hooks/useTheme';
+import { EngravedText } from './themed/EngravedText';
+import { ThemeCardDecor } from './themed/ThemeEngine';
 
 interface PlayerCardProps {
   playerId: string;
@@ -10,14 +12,15 @@ interface PlayerCardProps {
   photo?: string;
   showPhotos?: boolean;
   theme: ThemeKey;
+  variant: string;
   onNameChange: (newName: string) => void;
   onScoreChange: (change: number) => void;
 }
 
 export const PlayerCard = ({
-  playerId, name, score, photo, showPhotos, theme, onNameChange, onScoreChange,
+  playerId, name, score, photo, showPhotos, theme, variant, onNameChange, onScoreChange,
 }: PlayerCardProps) => {
-  const tk = useTheme(theme);
+  const tk = useTheme(theme, variant);
   const [localName, setLocalName] = useState(name);
 
   // Sincronizar si cambió desde Firebase
@@ -40,6 +43,8 @@ export const PlayerCard = ({
         shadowColor: tk.cardShadowColor,
       },
     ]}>
+      <ThemeCardDecor theme={theme} variant={variant} primaryColor={tk.primary} />
+      
       {showPhotos && photo ? (
         <View style={[
           styles.photoContainer, 
@@ -59,8 +64,24 @@ export const PlayerCard = ({
       ) : null}
 
       <TextInput
-        style={[styles.nameInput, { color: tk.text, backgroundColor: tk.inputBg }]}
-        value={localName}
+        style={[styles.nameInput, { 
+          color: tk.text, 
+          backgroundColor: tk.inputBg,
+          fontFamily: tk.fontFamily,
+          textTransform: tk.textTransform,
+          textShadowColor: tk.textShadowColor,
+          textShadowOffset: tk.textShadowOffset,
+          textShadowRadius: tk.textShadowRadius,
+          ...(tk.hasEngravedText && {
+            borderTopWidth: 2, borderLeftWidth: 2,
+            borderBottomWidth: 1, borderRightWidth: 1,
+            borderTopColor: 'rgba(0,0,0,0.85)',
+            borderLeftColor: 'rgba(0,0,0,0.85)',
+            borderBottomColor: 'rgba(255,255,255,0.2)',
+            borderRightColor: 'rgba(255,255,255,0.2)',
+          }),
+        }]}
+        value={tk.textTransform === 'uppercase' ? localName.toUpperCase() : localName}
         onChangeText={setLocalName}
         onEndEditing={handleNameSubmit}
         selectTextOnFocus
@@ -68,19 +89,84 @@ export const PlayerCard = ({
 
       <View style={styles.scoreContainer}>
         <TouchableOpacity
-          style={[styles.scoreBtn, { backgroundColor: tk.primary }]}
+          style={[styles.scoreBtn, { 
+            backgroundColor: tk.primary,
+            ...(tk.hasEngravedText && {
+              borderTopWidth: 2, borderLeftWidth: 2, borderBottomWidth: 3, borderRightWidth: 2,
+              borderTopColor: 'rgba(255,255,255,0.6)', borderLeftColor: 'rgba(255,255,255,0.6)',
+              borderBottomColor: 'rgba(0,0,0,0.8)', borderRightColor: 'rgba(0,0,0,0.8)',
+            }),
+          }]}
           onPress={() => onScoreChange(-1)}
         >
-          <Text style={[styles.btnText, { color: tk.background }]}>-1</Text>
+          {tk.hasEngravedText ? (
+            <EngravedText 
+              text="-1" 
+              textStyle={[styles.btnText, { color: tk.background, fontFamily: tk.fontFamily, textTransform: tk.textTransform }]} 
+            />
+          ) : (
+            <Text style={[
+              styles.btnText, 
+              { 
+                color: tk.background, 
+                fontFamily: tk.fontFamily, 
+                textTransform: tk.textTransform,
+                textShadowColor: tk.textShadowColor,
+                textShadowOffset: tk.textShadowOffset,
+                textShadowRadius: tk.textShadowRadius,
+              }
+            ]}>-1</Text>
+          )}
         </TouchableOpacity>
 
-        <Text style={[styles.scoreText, { color: tk.text }]}>{score}</Text>
+        {tk.hasEngravedText ? (
+          <EngravedText 
+            text={String(score)} 
+            textStyle={[styles.scoreText, { color: tk.text, fontFamily: tk.fontFamily, textTransform: tk.textTransform }]} 
+          />
+        ) : (
+          <Text style={[
+            styles.scoreText, 
+            { 
+              color: tk.text, 
+              fontFamily: tk.fontFamily, 
+              textTransform: tk.textTransform,
+              textShadowColor: tk.textShadowColor,
+              textShadowOffset: tk.textShadowOffset,
+              textShadowRadius: tk.textShadowRadius,
+            }
+          ]}>{score}</Text>
+        )}
 
         <TouchableOpacity
-          style={[styles.scoreBtn, { backgroundColor: tk.primary }]}
+          style={[styles.scoreBtn, { 
+            backgroundColor: tk.primary,
+            ...(tk.hasEngravedText && {
+              borderTopWidth: 2, borderLeftWidth: 2, borderBottomWidth: 3, borderRightWidth: 2,
+              borderTopColor: 'rgba(255,255,255,0.6)', borderLeftColor: 'rgba(255,255,255,0.6)',
+              borderBottomColor: 'rgba(0,0,0,0.8)', borderRightColor: 'rgba(0,0,0,0.8)',
+            }),
+          }]}
           onPress={() => onScoreChange(1)}
         >
-          <Text style={[styles.btnText, { color: tk.background }]}>+1</Text>
+          {tk.hasEngravedText ? (
+            <EngravedText 
+              text="+1" 
+              textStyle={[styles.btnText, { color: tk.background, fontFamily: tk.fontFamily, textTransform: tk.textTransform }]} 
+            />
+          ) : (
+            <Text style={[
+              styles.btnText, 
+              { 
+                color: tk.background, 
+                fontFamily: tk.fontFamily, 
+                textTransform: tk.textTransform,
+                textShadowColor: tk.textShadowColor,
+                textShadowOffset: tk.textShadowOffset,
+                textShadowRadius: tk.textShadowRadius,
+              }
+            ]}>+1</Text>
+          )}
         </TouchableOpacity>
       </View>
     </View>

@@ -18,12 +18,14 @@ import {
   StyleSheet, ScrollView, Alert, StatusBar, Platform,
 } from 'react-native';
 import { ScreenWrapper } from '../components/ScreenWrapper';
+import { EngravedText } from '../components/themed/EngravedText';
 import { ThemeConfig, ThemeKey, Themes } from '../../config/Themes';
 import { useTheme } from '../../hooks/useTheme';
 import { dbService } from '../../services/DatabaseService';
 import { ThemeSelectorGrid } from '../components/ThemeSelectorGrid';
-import { Win95Raised, Win95Sunken, Win95StatusBar } from '../components/themed/Win95Parts';
-import { NeonScanline, NeonDecoRow, NeonFooter } from '../components/themed/NeonParts';
+import { Win95Raised, Win95Sunken } from '../components/themed/Win95Parts';
+import { NeonScanline } from '../components/themed/NeonParts';
+import { ThemeBackground, ThemeHeaderDecor, ThemeFooterDecor } from '../components/themed/ThemeEngine';
 
 // ─── Interfaz compartida de props temáticas ───────────────────────────────────
 interface TKProps { tk: ThemeConfig }
@@ -216,6 +218,19 @@ const LoginFieldInput = ({ tk, label, value, placeholder, onChange }: FieldInput
           shadowRadius: 6,
           elevation: 0,
         }),
+        ...(tk.hasEngravedText && {
+          borderTopWidth: 3,
+          borderLeftWidth: 3,
+          borderRightWidth: 1,
+          borderBottomWidth: 1,
+          borderTopColor: 'rgba(0,0,0,0.85)',
+          borderLeftColor: 'rgba(0,0,0,0.85)',
+          borderRightColor: 'rgba(255,255,255,0.2)',
+          borderBottomColor: 'rgba(255,255,255,0.2)',
+          textShadowColor: 'rgba(0,0,0,0.9)',
+          textShadowOffset: { width: -1, height: -1 },
+          textShadowRadius: 1,
+        }),
       }]}
       placeholder={placeholder}
       placeholderTextColor={tk.inputPlaceholderColor}
@@ -262,13 +277,16 @@ const LoginFieldInput = ({ tk, label, value, placeholder, onChange }: FieldInput
   // Metal
   return (
     <View style={styles.fieldWrapper}>
-      <Text style={[styles.label, {
-        color: tk.labelColor,
-        letterSpacing: tk.labelLetterSpacing,
-        fontWeight: tk.labelFontWeight,
-      }]}>
-        {label}
-      </Text>
+      <EngravedText
+        text={label}
+        style={{ marginBottom: 5 }}
+        textStyle={[styles.label, {
+          color: tk.labelColor,
+          letterSpacing: tk.labelLetterSpacing,
+          fontWeight: tk.labelFontWeight,
+          marginBottom: 0,
+        }]}
+      />
       {inputEl}
     </View>
   );
@@ -342,8 +360,12 @@ const LoginCTAButton = ({ tk, label, onPress }: CTAButtonProps) => {
       style={[styles.mainBtn, {
         backgroundColor: tk.btnBg,
         borderRadius: tk.btnBorderRadius,
-        borderWidth: 1,
-        borderColor: tk.btnBorderColor,
+        borderTopWidth: 2, borderLeftWidth: 2,
+        borderBottomWidth: 3, borderRightWidth: 2,
+        borderTopColor: 'rgba(255,255,255,0.6)',
+        borderLeftColor: 'rgba(255,255,255,0.6)',
+        borderBottomColor: 'rgba(0,0,0,0.9)',
+        borderRightColor: 'rgba(0,0,0,0.9)',
         marginTop: 12,
         elevation: tk.btnElevation,
         shadowColor: '#000',
@@ -354,15 +376,13 @@ const LoginCTAButton = ({ tk, label, onPress }: CTAButtonProps) => {
       onPress={onPress}
       activeOpacity={0.85}
     >
-      <Text style={[styles.btnText, {
-        color: tk.btnTextColor,
-        letterSpacing: tk.btnLetterSpacing,
-        textShadowColor: 'rgba(255,255,255,0.4)',
-        textShadowOffset: { width: 1, height: 1 },
-        textShadowRadius: 1,
-      }]}>
-        ⚙ {label}
-      </Text>
+      <EngravedText
+        text={`⚙ ${label}`}
+        textStyle={[styles.btnText, {
+          color: tk.btnTextColor,
+          letterSpacing: tk.btnLetterSpacing,
+        }]}
+      />
     </TouchableOpacity>
   );
 };
@@ -498,12 +518,18 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
         barStyle={tk.statusBarStyle}
       />
       <ScreenWrapper style={{ backgroundColor: tk.screenBg }}>
+        <ThemeBackground theme={selectedTheme} primaryColor={tk.primary} />
         {/* backgroundColor en ScrollView garantiza que el fondo se pinte hasta los bordes */}
         <ScrollView
           contentContainerStyle={[styles.loginContent, { backgroundColor: tk.screenBg }]}
           keyboardShouldPersistTaps="handled"
         >
-          {tk.hasScanlines && <NeonDecoRow />}
+          <ThemeHeaderDecor 
+            theme={selectedTheme} 
+            hasScanlines={tk.hasScanlines} 
+            hasEngravedText={tk.hasEngravedText} 
+            primaryColor={tk.primary} 
+          />
 
           {/* key={selectedTheme} fuerza re-mount de la tarjeta al cambiar tema,
               garantizando que todos los estilos se apliquen limpiamente */}
@@ -548,8 +574,13 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
 
               <LoginCTAButton tk={tk} label={ctaLabel} onPress={handleAction} />
 
-              {tk.hasScanlines && <NeonFooter />}
-              {tk.hasBevel && <Win95StatusBar />}
+              <ThemeFooterDecor 
+                theme={selectedTheme} 
+                hasScanlines={tk.hasScanlines} 
+                hasBevel={tk.hasBevel} 
+                hasEngravedText={tk.hasEngravedText} 
+                primaryColor={tk.primary} 
+              />
 
             </View>
           </View>

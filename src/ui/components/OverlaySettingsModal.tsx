@@ -158,8 +158,22 @@ export const OverlaySettingsModal = ({
           { backgroundColor: tk.background, borderColor: tk.primary, borderWidth: tk.modalBorderWidth },
         ]}>
           {/* HEADER */}
-          <View style={[styles.header, { backgroundColor: tk.primary }]}>
-            <Text style={[styles.headerTitle, { color: tk.background }]}>CONTROL DE OVERLAY</Text>
+          <View style={[styles.header, { 
+            backgroundColor: tk.primary,
+            ...(tk.hasEngravedText && {
+              borderTopWidth: 2, borderLeftWidth: 2, borderBottomWidth: 3, borderRightWidth: 2,
+              borderTopColor: 'rgba(255,255,255,0.6)', borderLeftColor: 'rgba(255,255,255,0.6)',
+              borderBottomColor: 'rgba(0,0,0,0.8)', borderRightColor: 'rgba(0,0,0,0.8)',
+            }),
+          }]}>
+            <Text style={[styles.headerTitle, { 
+              color: tk.background,
+              ...(tk.hasEngravedText && {
+                 textShadowColor: 'rgba(255,255,255,0.4)',
+                 textShadowOffset: { width: 1, height: 1 },
+                 textShadowRadius: 1,
+              })
+            }]}>CONTROL DE OVERLAY</Text>
             <Pressable onPress={onClose} style={styles.closeBtn}>
               <Text style={{ color: tk.background, fontWeight: 'bold', fontSize: 20 }}>✕</Text>
             </Pressable>
@@ -172,12 +186,23 @@ export const OverlaySettingsModal = ({
               <Text style={[styles.label, { color: tk.text }]}>TÍTULO DEL EVENTO</Text>
               <TextInput
                 style={[styles.input, {
-                  backgroundColor: tk.inputBg, color: tk.text, borderColor: tk.primary,
+                  backgroundColor: tk.inputBg, color: tk.text, borderColor: tk.hasEngravedText ? 'transparent' : tk.primary,
+                  ...(tk.hasEngravedText && {
+                    borderTopWidth: 2, borderLeftWidth: 2,
+                    borderBottomWidth: 1, borderRightWidth: 1,
+                    borderTopColor: 'rgba(0,0,0,0.85)',
+                    borderLeftColor: 'rgba(0,0,0,0.85)',
+                    borderBottomColor: 'rgba(255,255,255,0.2)',
+                    borderRightColor: 'rgba(255,255,255,0.2)',
+                    textShadowColor: 'rgba(0,0,0,0.9)',
+                    textShadowOffset: { width: -1, height: -1 },
+                    textShadowRadius: 1,
+                  }),
                 }]}
                 value={settings.customTitle}
                 onChangeText={(text) => handleUpdate('customTitle', text)}
                 placeholder="Ej: Torneo Verano 2024..."
-                placeholderTextColor="rgba(150,150,150,0.5)"
+                placeholderTextColor={tk.hasEngravedText ? "rgba(255,255,255,0.3)" : "rgba(150,150,150,0.5)"}
               />
             </View>
 
