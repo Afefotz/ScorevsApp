@@ -41,7 +41,14 @@ export const PlayerCard = ({
       },
     ]}>
       {showPhotos && photo ? (
-        <View style={[styles.photoContainer, { borderColor: tk.primary }]}>
+        <View style={[
+          styles.photoContainer, 
+          { 
+            borderColor: tk.primary, 
+            backgroundColor: tk.inputBg,
+            shadowColor: tk.cardShadowColor 
+          }
+        ]}>
           <Image
             key={`photo-${showPhotos}`}
             source={{ uri: photo }}
@@ -106,9 +113,7 @@ const styles = StyleSheet.create({
     borderWidth: 3,
     marginBottom: 15,
     overflow: 'hidden',
-    backgroundColor: 'rgba(0,0,0,0.1)',
     elevation: 4,
-    shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.3,
     shadowRadius: 3,
@@ -121,6 +126,6 @@ const styles = StyleSheet.create({
     width: 60, height: 60, borderRadius: 30,
     justifyContent: 'center', alignItems: 'center', marginHorizontal: 15,
   },
-  btnText:   { fontSize: 28, fontWeight: 'bold' },
+  btnText:   { fontSize: 24, fontWeight: 'bold' },
   scoreText: { fontSize: 70, fontWeight: 'bold', minWidth: 90, textAlign: 'center' },
 });

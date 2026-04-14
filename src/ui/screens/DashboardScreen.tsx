@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, StatusBar, LayoutAnimation } from 'react-native';
 import { ScreenWrapper } from '../components/ScreenWrapper';
 import { dbService, PlayerData, SettingsData } from '../../services/DatabaseService';
 import { Themes, ThemeKey } from '../../config/Themes';
@@ -38,6 +38,9 @@ export const DashboardScreen = ({ roomId, theme, onLogout, onThemeChange }: Dash
   // Persistir el tema si cambió en Firebase y notificar al App
   useEffect(() => {
     if (activeThemeKey) {
+      // Transición suave al cambiar el tema (evita "saltos" visuales)
+      LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+      
       AsyncStorage.setItem('@versus_selected_theme', activeThemeKey);
       onThemeChange(activeThemeKey);
     }
@@ -61,24 +64,36 @@ export const DashboardScreen = ({ roomId, theme, onLogout, onThemeChange }: Dash
 
   return (
     <ScreenWrapper style={{ backgroundColor: tk.screenBg }}>
-      {/* HEADER */}
-      <View style={[styles.header, { borderBottomColor: tk.primary }]}>
-        <View>
-          <Text style={[styles.roomLabel, { color: tk.text }]}>SALA ACTIVA</Text>
-          <Text style={[styles.roomInfo,  { color: tk.primary }]}>{roomId}</Text>
+      <StatusBar barStyle={tk.statusBarStyle} backgroundColor={tk.headerBg} />
+      
+      {/* 
+          Contenedor principal con KEY vinculada al tema activo.
+          Esto fuerza un re-montado limpio, eliminando residuos visuales (colores, bordes)
+          que a veces persisten por caché de estilos de la plataforma.
+      */}
+      <View key={activeThemeKey} style={{ flex: 1 }}>
+        {/* HEADER */}
+        <View style={[styles.header, { 
+          borderBottomColor: tk.primary,
+          backgroundColor: tk.headerBg,
+          borderBottomWidth: tk.headerBorderBottomWidth,
+        }]}>
+          <View>
+            <Text style={[styles.roomLabel, { color: tk.text }]}>SALA ACTIVA</Text>
+            <Text style={[styles.roomInfo,  { color: tk.primary }]}>{roomId}</Text>
+          </View>
+          <View style={styles.headerRight}>
+            <TouchableOpacity
+              onPress={() => setIsSettingsVisible(true)}
+              style={[styles.settingsBtn, { borderColor: tk.primary, backgroundColor: tk.inputBg }]}
+            >
+              <Text style={[styles.settingsIcon, { color: tk.text }]}>⚙️</Text>
+            </TouchableOpacity>
+            <TouchableOpacity onPress={onLogout} style={[styles.logoutBtn, { backgroundColor: tk.errorColor }]}>
+              <Text style={styles.logoutText}>SALIR</Text>
+            </TouchableOpacity>
+          </View>
         </View>
-        <View style={styles.headerRight}>
-          <TouchableOpacity
-            onPress={() => setIsSettingsVisible(true)}
-            style={[styles.settingsBtn, { borderColor: tk.primary }]}
-          >
-            <Text style={[styles.settingsIcon, { color: tk.text }]}>⚙️</Text>
-          </TouchableOpacity>
-          <TouchableOpacity onPress={onLogout} style={styles.logoutBtn}>
-            <Text style={styles.logoutText}>SALIR</Text>
-          </TouchableOpacity>
-        </View>
-      </View>
 
       <OverlaySettingsModal
         isVisible={isSettingsVisible}
@@ -114,7 +129,8 @@ export const DashboardScreen = ({ roomId, theme, onLogout, onThemeChange }: Dash
           onNameChange={(newName) => handleNameChange('p2', newName)}
           onScoreChange={(change) => handleScoreChange('p2', change, roomData.p2?.score || 0)}
         />
-      </ScrollView>
+        </ScrollView>
+      </View>
     </ScreenWrapper>
   );
 };
@@ -123,26 +139,24 @@ const styles = StyleSheet.create({
   loadingContainer: { flex: 1, justifyContent: 'center', alignItems: 'center' },
   header: {
     flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
-    padding: 15, borderBottomWidth: 2, backgroundColor: 'rgba(0,0,0,0.1)',
+    padding: 15,
   },
-  roomLabel:   { fontSize: 12, fontWeight: 'bold', opacity: 0.8 },
+  roomLabel:   { fontSize: 10, fontWeight: 'bold', opacity: 0.6, letterSpacing: 1 },
   roomInfo:    { fontSize: 18, fontWeight: '900', textTransform: 'uppercase' },
   headerRight: { flexDirection: 'row', alignItems: 'center', gap: 10 },
   settingsBtn: {
     padding: 8, borderRadius: 8, borderWidth: 1,
-    backgroundColor: 'rgba(255,255,255,0.1)',
   },
   settingsIcon: { fontSize: 20 },
   logoutBtn: {
     paddingVertical: 8, paddingHorizontal: 15,
-    backgroundColor: '#ff4444', borderRadius: 8, elevation: 3,
+    borderRadius: 8, elevation: 3,
   },
-  logoutText: { color: '#fff', fontWeight: 'bold', fontSize: 16 },
+  logoutText: { color: '#fff', fontWeight: 'bold', fontSize: 13 },
   content:    { padding: 20, flexGrow: 1, justifyContent: 'center' },
   vsContainer:{ alignItems: 'center', marginVertical: 5 },
   vsText: {
     fontSize: 28, fontWeight: '900', fontStyle: 'italic',
-    textShadowColor: 'rgba(0,0,0,0.5)',
     textShadowOffset: { width: 1, height: 1 }, textShadowRadius: 3,
   },
 });

@@ -3,7 +3,7 @@ import {
   View, Text, Modal, StyleSheet, Pressable, ScrollView,
   Switch, TextInput, PanResponder, Animated, Dimensions,
 } from 'react-native';
-import { ThemeKey, Themes } from '../../config/Themes';
+import { ThemeKey, Themes, ThemeConfig, mapThemeToWebColors, getThemeDefaultSettings } from '../../config/Themes';
 import { useTheme } from '../../hooks/useTheme';
 import { dbService, SettingsData } from '../../services/DatabaseService';
 
@@ -82,15 +82,20 @@ export const OverlaySettingsModal = ({
       const dbOpacity = data?.opacity ?? 100;
       // Mapeo inverso: 65-100 DB → 0-100 UI
       const uiOpacity = Math.round(((dbOpacity - 65) / 35) * 100);
+      const themeFromDb = (data?.theme || 'theme-win95') as ThemeKey;
+      const tkFromDb = Themes[themeFromDb] || Themes['theme-win95'];
+      const accentFromDb = data?.accentColor || tkFromDb.primary;
+
       setSettings({
-        theme:       data?.theme       || 'theme-win95',
+        theme:       themeFromDb,
         variant:     data?.variant     || 'default',
-        accentColor: data?.accentColor || tk.primary,
+        accentColor: accentFromDb,
         opacity:     Math.max(0, Math.min(100, uiOpacity)),
         verticalMode: data?.verticalMode ?? false,
         showPhotos:   data?.showPhotos  ?? true,
         swapPlayers:  data?.swapPlayers ?? false,
         customTitle:  data?.customTitle || '',
+        colors:      data?.colors || mapThemeToWebColors(tkFromDb, accentFromDb),
       });
     });
     return () => unsubscribe();
@@ -98,6 +103,21 @@ export const OverlaySettingsModal = ({
 
   const handleUpdate = useCallback((key: keyof SettingsData, value: any) => {
     if (!settings) return;
+
+    if (key === 'theme') {
+      const newThemeKey = value as ThemeKey;
+      const themeDefaults = getThemeDefaultSettings(newThemeKey);
+
+      const updates: Partial<SettingsData> = {
+        theme: newThemeKey,
+        ...themeDefaults,
+      };
+
+      setSettings({ ...settings, ...updates });
+      dbService.updateSettings(roomId, updates);
+      return;
+    }
+
     setSettings({ ...settings, [key]: value });
     const dataToSave = key === 'opacity'
       ? Math.round(65 + (value / 100) * 35)  // 0-100 UI → 65-100 DB
@@ -107,7 +127,18 @@ export const OverlaySettingsModal = ({
 
   const handleVariantSelect = useCallback((variantId: string, color: string) => {
     if (!settings) return;
-    const updates = { variant: variantId, accentColor: color };
+    
+    const themeConfig = Themes[settings.theme as ThemeKey];
+    if (!themeConfig) return;
+
+    const newColors = mapThemeToWebColors(themeConfig, color);
+
+    const updates = { 
+      variant: variantId, 
+      accentColor: color,
+      colors: newColors 
+    };
+
     setSettings({ ...settings, ...updates });
     dbService.updateSettings(roomId, updates);
   }, [roomId, settings]);

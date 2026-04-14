@@ -15,6 +15,14 @@ export interface SettingsData {
   showPhotos: boolean;
   swapPlayers: boolean;
   customTitle: string;
+  colors?: {
+    bg: string;
+    primary: string;
+    score: string;
+    secondary: string;
+    text: string;
+    window: string;
+  };
 }
 
 class DatabaseService {
@@ -83,6 +91,12 @@ class DatabaseService {
   // Actualizar el tema visual (usando el nuevo método genérico)
   updateTheme(roomId: string, newTheme: string) {
     return this.updateSettings(roomId, { theme: newTheme });
+  }
+
+  // Obtener el tema actual de una sala desde Firebase
+  async getRoomTheme(roomId: string): Promise<string | null> {
+    const snapshot = await this.db.ref(`/rooms/${roomId}/settings/theme`).once('value');
+    return snapshot.exists() ? snapshot.val() : null;
   }
 }
 

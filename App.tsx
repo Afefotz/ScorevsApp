@@ -6,7 +6,7 @@ import {
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { ScreenWrapper } from './src/ui/components/ScreenWrapper';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { Themes, ThemeKey } from './src/config/Themes';
+import { Themes, ThemeKey, getThemeDefaultSettings } from './src/config/Themes';
 import { DashboardScreen } from './src/ui/screens/DashboardScreen';
 import { LoginScreen } from './src/ui/screens/LoginScreen';
 import { dbService } from './src/services/DatabaseService';
@@ -31,14 +31,28 @@ const MainContent = () => {
     loadSession();
   }, []);
 
-  const handleJoin = async (newRoomId: string, theme: ThemeKey) => {
-    // Sincronizar el tema elegido con Firebase para que el dashboard lo use
-    await dbService.updateTheme(newRoomId, theme);
+  const handleJoin = async (newRoomId: string, theme: ThemeKey, mode: 'join' | 'create') => {
+    let finalTheme = theme;
+
+    if (mode === 'join') {
+      // Rehidratar el tema desde Firebase para no sobreescribir el existente
+      const existingTheme = await dbService.getRoomTheme(newRoomId);
+      if (existingTheme) {
+        finalTheme = existingTheme as ThemeKey;
+      }
+    } else {
+      // Si estamos creando la sala, inicializamos con el tema seleccionado y sus valores atómicos
+      const themeDefaults = getThemeDefaultSettings(theme);
+      await dbService.updateSettings(newRoomId, {
+        theme,
+        ...themeDefaults,
+      });
+    }
     
     await AsyncStorage.setItem(ROOM_KEY, newRoomId);
-    await AsyncStorage.setItem(THEME_KEY, theme);
+    await AsyncStorage.setItem(THEME_KEY, finalTheme);
     setRoomId(newRoomId);
-    setSelectedTheme(theme);
+    setSelectedTheme(finalTheme);
   };
 
   const handleLogout = async () => {

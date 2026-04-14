@@ -405,7 +405,7 @@ const buildCardStyle = (tk: ThemeConfig) => ({
 // Main Screen
 // ─────────────────────────────────────────────────────────────────────────────
 interface LoginScreenProps {
-  onLogin: (roomId: string, theme: ThemeKey) => void;
+  onLogin: (roomId: string, theme: ThemeKey, mode: 'join' | 'create') => void;
   defaultTheme?: ThemeKey;
 }
 
@@ -476,7 +476,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
               text: 'Crear Sala',
               onPress: async () => {
                 await dbService.initializeRoom(fullRoomId);
-                onLogin(fullRoomId, selectedTheme);
+                onLogin(fullRoomId, selectedTheme, 'create'); // Se vuelve 'create' al aceptar crear
               },
             },
           ],
@@ -487,7 +487,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
       await dbService.initializeRoom(fullRoomId);
     }
 
-    onLogin(fullRoomId, selectedTheme);
+    onLogin(fullRoomId, selectedTheme, mode);
   };
 
   return (
@@ -537,12 +537,14 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
 
               {errorMsg && <LoginErrorText tk={tk} msg={errorMsg} />}
 
-              <ThemeSelectorGrid
-                selectedTheme={selectedTheme}
-                onSelectTheme={setSelectedTheme}
-                accentColor={Themes[selectedTheme].primary}
-                textColor={tk.labelColor}
-              />
+              {mode === 'create' && (
+                <ThemeSelectorGrid
+                  selectedTheme={selectedTheme}
+                  onSelectTheme={setSelectedTheme}
+                  accentColor={Themes[selectedTheme].primary}
+                  textColor={tk.labelColor}
+                />
+              )}
 
               <LoginCTAButton tk={tk} label={ctaLabel} onPress={handleAction} />
 
