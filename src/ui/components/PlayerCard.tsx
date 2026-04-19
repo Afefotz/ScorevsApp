@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, Image } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, Image, ActivityIndicator } from 'react-native';
+import { launchImageLibrary } from 'react-native-image-picker';
 import { ThemeKey } from '../../config/Themes';
 import { useTheme } from '../../hooks/useTheme';
 import { EngravedText } from './themed/EngravedText';
@@ -15,13 +16,15 @@ interface PlayerCardProps {
   variant: string;
   onNameChange: (newName: string) => void;
   onScoreChange: (change: number) => void;
+  onPhotoChange?: (newPhoto: string) => void;
 }
 
 export const PlayerCard = ({
-  playerId, name, score, photo, showPhotos, theme, variant, onNameChange, onScoreChange,
+  playerId, name, score, photo, showPhotos, theme, variant, onNameChange, onScoreChange, onPhotoChange
 }: PlayerCardProps) => {
   const tk = useTheme(theme, variant);
   const [localName, setLocalName] = useState(name);
+  const [isUploading, setIsUploading] = useState(false);
 
   // Sincronizar si cambió desde Firebase
   useEffect(() => { setLocalName(name); }, [name]);
@@ -29,6 +32,39 @@ export const PlayerCard = ({
   const handleNameSubmit = () => {
     if (localName.trim() !== name) {
       onNameChange(localName.trim() || `Jugador ${playerId === 'p1' ? '1' : '2'}`);
+    }
+  };
+
+  const handlePhotoUpload = async () => {
+    if (!onPhotoChange) return;
+
+    try {
+      setIsUploading(true);
+      const result = await launchImageLibrary({
+        mediaType: 'photo',
+        includeBase64: true,
+        maxWidth: 300,
+        maxHeight: 300,
+        quality: 0.5,
+      });
+
+      if (result.didCancel) {
+        setIsUploading(false);
+        return;
+      }
+
+      if (result.assets && result.assets.length > 0) {
+        const asset = result.assets[0];
+        if (asset.base64) {
+          const mimeType = asset.type || 'image/jpeg';
+          const dataUri = `data:${mimeType};base64,${asset.base64}`;
+          onPhotoChange(dataUri);
+        }
+      }
+    } catch (error) {
+      console.log('Error seleccionando imagen:', error);
+    } finally {
+      setIsUploading(false);
     }
   };
 
@@ -45,22 +81,36 @@ export const PlayerCard = ({
     ]}>
       <ThemeCardDecor theme={theme} variant={variant} primaryColor={tk.primary} />
       
-      {showPhotos && photo ? (
-        <View style={[
-          styles.photoContainer, 
-          { 
-            borderColor: tk.primary, 
-            backgroundColor: tk.inputBg,
-            shadowColor: tk.cardShadowColor 
-          }
-        ]}>
-          <Image
-            key={`photo-${showPhotos}`}
-            source={{ uri: photo }}
-            style={styles.playerPhoto}
-            resizeMode="cover"
-          />
-        </View>
+      {showPhotos ? (
+        <TouchableOpacity 
+          style={[
+            styles.photoContainer, 
+            { 
+              borderColor: tk.primary, 
+              backgroundColor: tk.inputBg,
+              shadowColor: tk.cardShadowColor 
+            }
+          ]}
+          onPress={handlePhotoUpload}
+          disabled={isUploading}
+        >
+          {isUploading ? (
+            <ActivityIndicator size="small" color={tk.primary} style={{ marginTop: 25 }} />
+          ) : photo ? (
+            <Image
+              key={`photo-${showPhotos}`}
+              source={{ uri: photo }}
+              style={styles.playerPhoto}
+              resizeMode="cover"
+            />
+          ) : (
+            <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+              <Text style={{ color: tk.text, opacity: 0.6, fontSize: 10, textAlign: 'center', fontWeight: 'bold' }}>
+                AÑADIR{'\n'}FOTO
+              </Text>
+            </View>
+          )}
+        </TouchableOpacity>
       ) : null}
 
       <TextInput

@@ -66,6 +66,12 @@ class DatabaseService {
     });
   }
 
+  updatePlayerPhoto(roomId: string, playerId: string, photoData: string) {
+    return this.db.ref(`/rooms/${roomId}/${playerId}`).update({
+      photo: photoData,
+    });
+  }
+
   updateScore(roomId: string, playerId: string, currentScore: number, change: number) {
     const newScore = Math.max(0, currentScore + change);
     return this.db.ref(`/rooms/${roomId}/${playerId}`).update({

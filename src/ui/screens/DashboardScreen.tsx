@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, StatusBar, LayoutAnimation } from 'react-native';
+import React, { useEffect, useState, useRef } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, StatusBar, LayoutAnimation, NativeModules, Platform, AppState, AppStateStatus } from 'react-native';
 import { ScreenWrapper } from '../components/ScreenWrapper';
 import { dbService, PlayerData, SettingsData } from '../../services/DatabaseService';
 import { Themes, ThemeKey } from '../../config/Themes';
@@ -9,7 +9,7 @@ import { PlayerCard } from '../components/PlayerCard';
 import { OverlaySettingsModal } from '../components/OverlaySettingsModal';
 import { EngravedText } from '../components/themed/EngravedText';
 import { ThemeBackground, ThemeHeaderDecor, ThemeFooterDecor } from '../components/themed/ThemeEngine';
-
+import { scoreOverlayWrapper, OverlayConfig } from '../../services/ScoreOverlayWrapper';
 interface DashboardScreenProps {
   roomId: string;
   theme: ThemeKey;
@@ -43,17 +43,69 @@ export const DashboardScreen = ({ roomId, theme, onLogout, onThemeChange }: Dash
     if (activeThemeKey) {
       // Transición suave al cambiar el tema (evita "saltos" visuales)
       LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
-      
+
       AsyncStorage.setItem('@versus_selected_theme', activeThemeKey);
       onThemeChange(activeThemeKey);
     }
   }, [activeThemeKey, onThemeChange]);
 
-  const handleNameChange  = (playerId: string, newName: string) =>
+  // --- OVERLAY NATIVE LIFECYCLE ---
+  const appState = useRef(AppState.currentState);
+  
+  useEffect(() => {
+    scoreOverlayWrapper.initListeners();
+    
+    const handleAppStateChange = (nextAppState: AppStateStatus) => {
+      if (!roomData) return;
+      const overlayConfig: OverlayConfig = {
+        roomId,
+        p1: { name: roomData.p1?.name || 'Jugador 1', score: roomData.p1?.score || 0, photo: roomData.p1?.photo },
+        p2: { name: roomData.p2?.name || 'Jugador 2', score: roomData.p2?.score || 0, photo: roomData.p2?.photo },
+        showPhotos: roomData.settings?.showPhotos ?? true,
+        themeConfig: {
+          background: tk.card,
+          text: tk.text,
+          primary: tk.primary,
+          hasBevel: tk.hasBevel ?? false,
+          hasScanlines: tk.hasScanlines ?? false
+        }
+      };
+
+      if (appState.current.match(/inactive|background/) && nextAppState === 'active') {
+        scoreOverlayWrapper.stopOverlay();
+      } else if (appState.current === 'active' && nextAppState.match(/inactive|background/)) {
+        scoreOverlayWrapper.startOverlay(overlayConfig);
+      }
+      appState.current = nextAppState;
+    };
+
+    const subscription = AppState.addEventListener('change', handleAppStateChange);
+    return () => subscription.remove();
+  }, [roomData, tk, roomId]);
+
+  // Sync state continuously if backgrounded (optimistic sync recovery)
+  useEffect(() => {
+    if (appState.current.match(/inactive|background/) && roomData) {
+      scoreOverlayWrapper.updateOverlay({
+        roomId,
+        p1: { name: roomData.p1?.name || 'Jugador 1', score: roomData.p1?.score || 0, photo: roomData.p1?.photo },
+        p2: { name: roomData.p2?.name || 'Jugador 2', score: roomData.p2?.score || 0, photo: roomData.p2?.photo },
+        showPhotos: roomData.settings?.showPhotos ?? true,
+        themeConfig: {
+          background: tk.card, text: tk.text, primary: tk.primary, hasBevel: tk.hasBevel ?? false, hasScanlines: tk.hasScanlines ?? false
+        }
+      });
+    }
+  }, [roomData, tk, roomId]);
+
+  const handleNameChange = (playerId: string, newName: string) =>
     dbService.updatePlayerName(roomId, playerId, newName);
 
   const handleScoreChange = (playerId: string, change: number, currentScore: number) =>
     dbService.updateScore(roomId, playerId, currentScore, change);
+
+  const handlePhotoChange = (playerId: string, newPhoto: string) =>
+    dbService.updatePlayerPhoto(roomId, playerId, newPhoto);
 
   if (!roomData) {
     return (
@@ -68,7 +120,7 @@ export const DashboardScreen = ({ roomId, theme, onLogout, onThemeChange }: Dash
   return (
     <ScreenWrapper style={{ backgroundColor: tk.screenBg }}>
       <StatusBar barStyle={tk.statusBarStyle} backgroundColor={tk.headerBg} />
-      
+
       {/* 
           Contenedor principal con KEY vinculada al tema activo.
           Esto fuerza un re-montado limpio, eliminando residuos visuales (colores, bordes)
@@ -77,14 +129,14 @@ export const DashboardScreen = ({ roomId, theme, onLogout, onThemeChange }: Dash
       <View key={`${activeThemeKey}-${activeVariant}`} style={{ flex: 1 }}>
         <ThemeBackground theme={activeThemeKey} variant={activeVariant} primaryColor={tk.primary} />
         {/* HEADER */}
-        <View style={[styles.header, { 
+        <View style={[styles.header, {
           borderBottomColor: tk.headerBorderBottomColor || tk.primary,
           backgroundColor: tk.headerBg,
           borderBottomWidth: tk.headerBorderBottomWidth,
         }]}>
           <View>
-            <Text style={[styles.roomLabel, { 
-              color: tk.headerTextColor, 
+            <Text style={[styles.roomLabel, {
+              color: tk.headerTextColor,
               opacity: 0.8,
               letterSpacing: tk.headerLetterSpacing,
               fontWeight: tk.headerFontWeight,
@@ -92,7 +144,7 @@ export const DashboardScreen = ({ roomId, theme, onLogout, onThemeChange }: Dash
             }]}>
               SALA ACTIVA
             </Text>
-            <Text style={[styles.roomInfo, { 
+            <Text style={[styles.roomInfo, {
               color: tk.headerTextColor,
               fontWeight: '900',
               letterSpacing: tk.headerLetterSpacing,
@@ -104,17 +156,17 @@ export const DashboardScreen = ({ roomId, theme, onLogout, onThemeChange }: Dash
           <View style={styles.headerRight}>
             <TouchableOpacity
               onPress={() => setIsSettingsVisible(true)}
-              style={[styles.settingsBtn, { 
-                borderColor: tk.headerTextColor, 
+              style={[styles.settingsBtn, {
+                borderColor: tk.headerTextColor,
                 backgroundColor: 'rgba(255,255,255,0.1)',
                 borderWidth: tk.hasBevel ? 2 : 1,
               }]}
             >
               <Text style={[styles.settingsIcon, { color: tk.headerTextColor }]}>⚙️</Text>
             </TouchableOpacity>
-            <TouchableOpacity 
-              onPress={onLogout} 
-              style={[styles.logoutBtn, { 
+            <TouchableOpacity
+              onPress={onLogout}
+              style={[styles.logoutBtn, {
                 backgroundColor: tk.errorColor,
                 borderWidth: tk.hasBevel ? 2 : 0,
                 borderColor: '#fff',
@@ -125,27 +177,27 @@ export const DashboardScreen = ({ roomId, theme, onLogout, onThemeChange }: Dash
           </View>
         </View>
 
-      <OverlaySettingsModal
-        isVisible={isSettingsVisible}
-        onClose={() => setIsSettingsVisible(false)}
-        roomId={roomId}
-        currentThemeKey={activeThemeKey}
-      />
+        <OverlaySettingsModal
+          isVisible={isSettingsVisible}
+          onClose={() => setIsSettingsVisible(false)}
+          roomId={roomId}
+          currentThemeKey={activeThemeKey}
+        />
 
         {/* MARCADORES */}
         <ScrollView contentContainerStyle={styles.content}>
           {/* Decoradores Superiores */}
-          <ThemeHeaderDecor 
-            theme={activeThemeKey} 
+          <ThemeHeaderDecor
+            theme={activeThemeKey}
             variant={activeVariant}
             hasScanlines={tk.hasScanlines}
             hasEngravedText={tk.hasEngravedText}
             primaryColor={tk.primary}
           />
-          
+
           <PlayerCard
             playerId="p1"
-            name={roomData.p1?.name  || 'Jugador 1'}
+            name={roomData.p1?.name || 'Jugador 1'}
             score={roomData.p1?.score || 0}
             photo={roomData.p1?.photo}
             showPhotos={roomData.settings?.showPhotos ?? true}
@@ -153,16 +205,17 @@ export const DashboardScreen = ({ roomId, theme, onLogout, onThemeChange }: Dash
             variant={activeVariant}
             onNameChange={(newName) => handleNameChange('p1', newName)}
             onScoreChange={(change) => handleScoreChange('p1', change, roomData.p1?.score || 0)}
+            onPhotoChange={(newPhoto) => handlePhotoChange('p1', newPhoto)}
           />
 
           <View style={styles.vsContainer}>
             {tk.hasEngravedText ? (
-              <EngravedText 
+              <EngravedText
                 text="VS"
                 textStyle={[styles.vsText, { color: tk.text, fontSize: 32 }]}
               />
             ) : (
-              <Text style={[styles.vsText, { 
+              <Text style={[styles.vsText, {
                 color: tk.text,
                 textShadowColor: tk.hasScanlines ? tk.primary : 'rgba(0,0,0,0.3)',
               }]}>VS</Text>
@@ -171,7 +224,7 @@ export const DashboardScreen = ({ roomId, theme, onLogout, onThemeChange }: Dash
 
           <PlayerCard
             playerId="p2"
-            name={roomData.p2?.name  || 'Jugador 2'}
+            name={roomData.p2?.name || 'Jugador 2'}
             score={roomData.p2?.score || 0}
             photo={roomData.p2?.photo}
             showPhotos={roomData.settings?.showPhotos ?? true}
@@ -179,11 +232,12 @@ export const DashboardScreen = ({ roomId, theme, onLogout, onThemeChange }: Dash
             variant={activeVariant}
             onNameChange={(newName) => handleNameChange('p2', newName)}
             onScoreChange={(change) => handleScoreChange('p2', change, roomData.p2?.score || 0)}
+            onPhotoChange={(newPhoto) => handlePhotoChange('p2', newPhoto)}
           />
 
           {/* Decoradores Inferiores */}
-          <ThemeFooterDecor 
-            theme={activeThemeKey} 
+          <ThemeFooterDecor
+            theme={activeThemeKey}
             variant={activeVariant}
             hasScanlines={tk.hasScanlines}
             hasBevel={tk.hasBevel}
@@ -202,8 +256,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
     padding: 15,
   },
-  roomLabel:   { fontSize: 10, fontWeight: 'bold', opacity: 0.6, letterSpacing: 1 },
-  roomInfo:    { fontSize: 18, fontWeight: '900', textTransform: 'uppercase' },
+  roomLabel: { fontSize: 10, fontWeight: 'bold', opacity: 0.6, letterSpacing: 1 },
+  roomInfo: { fontSize: 18, fontWeight: '900', textTransform: 'uppercase' },
   headerRight: { flexDirection: 'row', alignItems: 'center', gap: 10 },
   settingsBtn: {
     padding: 8, borderRadius: 8, borderWidth: 1,
@@ -214,8 +268,8 @@ const styles = StyleSheet.create({
     borderRadius: 8, elevation: 3,
   },
   logoutText: { color: '#fff', fontWeight: 'bold', fontSize: 13 },
-  content:    { padding: 20, flexGrow: 1, justifyContent: 'center' },
-  vsContainer:{ alignItems: 'center', marginVertical: 5 },
+  content: { padding: 20, flexGrow: 1, justifyContent: 'center' },
+  vsContainer: { alignItems: 'center', marginVertical: 5 },
   vsText: {
     fontSize: 28, fontWeight: '900', fontStyle: 'italic',
     textShadowOffset: { width: 1, height: 1 }, textShadowRadius: 3,
