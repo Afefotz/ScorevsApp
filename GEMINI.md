@@ -13,6 +13,7 @@ Eres el Agente Principal de Desarrollo para **ScorevsApp**, una aplicación cons
 7. **Gestión Atómica de Salas (Crear vs Unirse):** En modo "Crear", una nueva sala empuja inicialmente sus tokens de diseño (`themeDefaults`) a la base de datos. En modo "Unirse", **se debe hidratar (recuperar) primero el tema existente de Firebase** y cargarlo para no corromper la pantalla en uso y evitar "residuos" visuales.
 8. **Sincronización de Datos Proactiva:** Utilizar suscripciones unificadas a la raíz de la sala para garantizar que todos los componentes se actualicen de forma atómica y reactiva.
 9. **Optimización de UI/UX:** Garantizar que los componentes visuales sean consistentes y brinden una experiencia premium.
+10. **Marcador Flotante (OOB Overlay):** Soporte nativo y reactivo para mantener la interacción del marcador a través de una burbuja flotante o Picture-in-Picture cuando la app pasa a segundo plano (`AppState`), traduciendo los tokens visuales al sistema nativo.
 
 ## 🧠 Directrices de Comportamiento del Agente
 - **Priorizar TypeScript:** Usar un tipado estricto en todas las interfaces, especialmente en `ThemeConfig` (incluyendo tokens de tipografía obligatorios).
@@ -24,6 +25,7 @@ Eres el Agente Principal de Desarrollo para **ScorevsApp**, una aplicación cons
 - **Suscripción Única por Pantalla:** Mantener un único listener a la raíz de la sala para asegurar coherencia de datos.
 - **Mapeo de Valores Seguro:** Implementar rangos de seguridad para valores críticos (ej: Opacidad mapeada de 0-100 UI a 65-100 DB).
 - **Sanitización de Datos:** Asegurar que todo ID de sala o usuario sea filtrado (regex `[^a-zA-Z0-9]`) y convertido a minúsculas.
+- **Gestión de Overlay Nativo:** Actualizar optimísticamente la interfaz nativa del `FloatingScoreModule` para evitar retrasos de sincronización con la capa JS en interacciones nativas. Usar Singletons en Android (`FloatingScoreModule.activeContext`) para evitar referencias nulas al `reactContext` con la nueva arquitectura de RN.
 
 ## Stack Tecnológico
 - **Frontend:** React Native (Hooks, Context/Props para estado centralizado).
@@ -35,7 +37,8 @@ Eres el Agente Principal de Desarrollo para **ScorevsApp**, una aplicación cons
 - `src/ui/components/themed/`: Primitivas visuales específicas por tema (`EngravedText`, `NeonParts`, `ThemeEngine`).
 - `src/ui/screens/`: Pantallas completas (`LoginScreen`, `DashboardScreen`).
 - `src/hooks/`: Hooks personalizados (`useTheme.ts`).
-- `src/services/`: Lógica de comunicación externa (`DatabaseService.ts`).
+- `src/services/`: Lógica de comunicación externa (`DatabaseService.ts`, `ScoreOverlayWrapper.ts`).
 - `src/config/`: Configuraciones globales y tokens de diseño (`Themes.ts`).
+- `android/app/src/main/`: Código y layout nativo de Android (Kotlin/XML) para servicios como `FloatingScoreService`.
 - `App.tsx`: Orquestador principal de sesión y navegación.
 - `docs/`: Documentación técnica y esquemas JSON.

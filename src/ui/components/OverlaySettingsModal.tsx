@@ -3,6 +3,7 @@ import {
   View, Text, Modal, StyleSheet, Pressable, ScrollView,
   Switch, TextInput, PanResponder, Animated, Dimensions,
 } from 'react-native';
+import Clipboard from '@react-native-clipboard/clipboard';
 import { ThemeKey, Themes, ThemeConfig, mapThemeToWebColors, getThemeDefaultSettings } from '../../config/Themes';
 import { useTheme } from '../../hooks/useTheme';
 import { dbService, SettingsData } from '../../services/DatabaseService';
@@ -75,6 +76,14 @@ export const OverlaySettingsModal = ({
 }: OverlaySettingsModalProps) => {
   const tk = useTheme(currentThemeKey);
   const [settings, setSettings] = useState<SettingsData | null>(null);
+  const [copied, setCopied] = useState(false);
+
+  const handleCopy = useCallback(() => {
+    const url = `https://scorevs.vercel.app/overlay.html?room=${roomId}`;
+    Clipboard.setString(url);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  }, [roomId]);
 
   useEffect(() => {
     if (!isVisible) return;
@@ -295,6 +304,37 @@ export const OverlaySettingsModal = ({
               ))}
             </View>
 
+            {/* LINK PARA STREAMING */}
+            <View style={styles.section}>
+              <Text style={[styles.label, { color: tk.text }]}>LINK PARA STREAMING</Text>
+              <View style={styles.linkRow}>
+                <TextInput
+                  style={[styles.input, styles.linkInput, {
+                    flex: 1,
+                    backgroundColor: tk.inputBg, color: tk.text, borderColor: tk.hasEngravedText ? 'transparent' : tk.primary,
+                    ...(tk.hasEngravedText && {
+                      borderTopWidth: 2, borderLeftWidth: 2,
+                      borderBottomWidth: 1, borderRightWidth: 1,
+                      borderTopColor: 'rgba(0,0,0,0.85)',
+                      borderLeftColor: 'rgba(0,0,0,0.85)',
+                      borderBottomColor: 'rgba(255,255,255,0.2)',
+                      borderRightColor: 'rgba(255,255,255,0.2)',
+                    }),
+                  }]}
+                  value={`https://scorevs.vercel.app/overlay.html?room=${roomId}`}
+                  editable={false}
+                />
+                <Pressable
+                  style={[styles.copyBtn, { backgroundColor: tk.primary }]}
+                  onPress={handleCopy}
+                >
+                  <Text style={[styles.copyBtnText, { color: tk.background }]}>
+                    {copied ? '¡LISTO!' : 'COPIAR'}
+                  </Text>
+                </Pressable>
+              </View>
+            </View>
+
           </ScrollView>
 
           <Pressable style={[styles.saveBtn, { backgroundColor: tk.primary }]} onPress={onClose}>
@@ -335,6 +375,10 @@ const styles = StyleSheet.create({
   controlGrid:      { borderTopWidth: 1, borderBottomWidth: 1, borderColor: 'rgba(150,150,150,0.1)', marginVertical: 10, paddingVertical: 10 },
   controlItem:      { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: 8 },
   smallLabel:       { fontSize: 10, fontWeight: 'bold', textTransform: 'uppercase' },
+  linkRow:          { flexDirection: 'row', gap: 10, alignItems: 'center' },
+  linkInput:        { fontSize: 13, paddingVertical: 10 },
+  copyBtn:          { paddingHorizontal: 15, paddingVertical: 12, borderRadius: 8, minWidth: 90, alignItems: 'center' },
+  copyBtnText:      { fontWeight: '900', fontSize: 11, letterSpacing: 1 },
   saveBtn:          { padding: 20, alignItems: 'center' },
   saveBtnText:      { fontWeight: '900', fontSize: 16, letterSpacing: 2 },
 });
