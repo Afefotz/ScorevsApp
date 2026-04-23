@@ -29,13 +29,14 @@ export interface SettingsData {
 class DatabaseService {
   private db = database();
   
-  private normalizeSettings(settings: any): SettingsData {
-    if (!settings) return {} as SettingsData;
+  private normalizeSettings(settings: any, roomRoot?: any): SettingsData {
+    if (!settings && !roomRoot) return {} as SettingsData;
     
+    const s = settings || {};
     return {
-      ...settings,
-      // Normalization bridge: prefer theme_variant if present (from web)
-      variant: settings.theme_variant || settings.variant || 'default',
+      ...s,
+      // Normalization bridge: prefer theme_variant if present (from web, either root or settings)
+      variant: roomRoot?.theme_variant || s.theme_variant || s.variant || 'default',
     };
   }
 
@@ -55,8 +56,8 @@ class DatabaseService {
     const reference = this.db.ref(`/rooms/${roomId}`);
     reference.on('value', snapshot => {
       const data = snapshot.val();
-      if (data && data.settings) {
-        data.settings = this.normalizeSettings(data.settings);
+      if (data) {
+        data.settings = this.normalizeSettings(data.settings, data);
       }
       callback(data);
     });
@@ -100,6 +101,8 @@ class DatabaseService {
     const reference = this.db.ref(`/rooms/${roomId}/settings`);
     reference.on('value', snapshot => {
       const data = snapshot.val();
+      // En este listener solo tenemos acceso al nodo settings,
+      // pero normalizeSettings manejará el fallback interno.
       callback(this.normalizeSettings(data));
     });
     return () => reference.off('value');
