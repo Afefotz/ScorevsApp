@@ -36,6 +36,12 @@ export const DashboardScreen = ({ roomId, theme, onLogout, onThemeChange }: Dash
     : theme;
 
   const activeVariant = roomData?.settings?.variant || '';
+  
+  // LOG PARA DEPURACIÓN (Ver en terminal Metro)
+  if (roomData) {
+    console.log(`[Dashboard] Active Theme: ${activeThemeKey} | Active Variant: ${activeVariant}`);
+  }
+
   const tk = useTheme(activeThemeKey, activeVariant);
 
   // Persistir el tema si cambió en Firebase y notificar al App
@@ -51,10 +57,10 @@ export const DashboardScreen = ({ roomId, theme, onLogout, onThemeChange }: Dash
 
   // --- OVERLAY NATIVE LIFECYCLE ---
   const appState = useRef(AppState.currentState);
-  
+
   useEffect(() => {
     scoreOverlayWrapper.initListeners();
-    
+
     const handleAppStateChange = (nextAppState: AppStateStatus) => {
       if (!roomData) return;
       const overlayConfig: OverlayConfig = {
@@ -66,8 +72,18 @@ export const DashboardScreen = ({ roomId, theme, onLogout, onThemeChange }: Dash
           background: tk.card,
           text: tk.text,
           primary: tk.primary,
+          border: tk.headerBorderBottomColor || tk.primary,
+          btnBg: tk.btnBg,
+          btnTextColor: tk.btnTextColor,
+          btnBorderColor: tk.btnBorderColor,
+          btnBorderRadius: tk.btnBorderRadius,
           hasBevel: tk.hasBevel ?? false,
-          hasScanlines: tk.hasScanlines ?? false
+          hasScanlines: tk.hasScanlines ?? false,
+          themeId: activeThemeKey,
+          imageShape: (activeThemeKey === 'Win95' || activeThemeKey === 'Neon' || activeThemeKey === 'Laser') ? 'bevel-square' : (activeThemeKey === 'Metal' || activeThemeKey === 'Stone') ? 'rounded-square' : 'circle',
+          fontMono: activeThemeKey === 'Win95',
+          scanlinesColor: tk.scanlinesColor,
+          scaleFactor: 1.0
         }
       };
 
@@ -78,6 +94,34 @@ export const DashboardScreen = ({ roomId, theme, onLogout, onThemeChange }: Dash
       }
       appState.current = nextAppState;
     };
+
+    // Si ya estamos en segundo plano y hay un cambio de datos o tema, actualizamos el overlay inmediatamente
+    if (appState.current.match(/inactive|background/) && roomData) {
+      const overlayConfig: OverlayConfig = {
+        roomId,
+        p1: { name: roomData.p1?.name || 'Jugador 1', score: roomData.p1?.score || 0, photo: roomData.p1?.photo },
+        p2: { name: roomData.p2?.name || 'Jugador 2', score: roomData.p2?.score || 0, photo: roomData.p2?.photo },
+        showPhotos: roomData.settings?.showPhotos ?? true,
+        themeConfig: {
+          background: tk.card,
+          text: tk.text,
+          primary: tk.primary,
+          border: tk.headerBorderBottomColor || tk.primary,
+          btnBg: tk.btnBg,
+          btnTextColor: tk.btnTextColor,
+          btnBorderColor: tk.btnBorderColor,
+          btnBorderRadius: tk.btnBorderRadius,
+          hasBevel: tk.hasBevel ?? false,
+          hasScanlines: tk.hasScanlines ?? false,
+          themeId: activeThemeKey,
+          imageShape: (activeThemeKey === 'Win95' || activeThemeKey === 'Neon' || activeThemeKey === 'Laser') ? 'bevel-square' : (activeThemeKey === 'Metal' || activeThemeKey === 'Stone') ? 'rounded-square' : 'circle',
+          fontMono: activeThemeKey === 'Win95',
+          scanlinesColor: tk.scanlinesColor,
+          scaleFactor: 1.0
+        }
+      };
+      scoreOverlayWrapper.updateOverlay(overlayConfig);
+    }
 
     const subscription = AppState.addEventListener('change', handleAppStateChange);
     return () => subscription.remove();
@@ -92,7 +136,21 @@ export const DashboardScreen = ({ roomId, theme, onLogout, onThemeChange }: Dash
         p2: { name: roomData.p2?.name || 'Jugador 2', score: roomData.p2?.score || 0, photo: roomData.p2?.photo },
         showPhotos: roomData.settings?.showPhotos ?? true,
         themeConfig: {
-          background: tk.card, text: tk.text, primary: tk.primary, hasBevel: tk.hasBevel ?? false, hasScanlines: tk.hasScanlines ?? false
+          background: tk.card,
+          text: tk.text,
+          primary: tk.primary,
+          border: tk.headerBorderBottomColor || tk.primary,
+          btnBg: tk.btnBg,
+          btnTextColor: tk.btnTextColor,
+          btnBorderColor: tk.btnBorderColor,
+          btnBorderRadius: tk.btnBorderRadius,
+          hasBevel: tk.hasBevel ?? false,
+          hasScanlines: tk.hasScanlines ?? false,
+          themeId: activeThemeKey,
+          imageShape: (activeThemeKey === 'Win95' || activeThemeKey === 'Neon' || activeThemeKey === 'Laser') ? 'bevel-square' : (activeThemeKey === 'Metal' || activeThemeKey === 'Stone') ? 'rounded-square' : 'circle',
+          fontMono: activeThemeKey === 'Win95',
+          scanlinesColor: tk.scanlinesColor,
+          scaleFactor: 1.0
         }
       });
     }

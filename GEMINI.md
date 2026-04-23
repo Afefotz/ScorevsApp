@@ -13,7 +13,9 @@ Eres el Agente Principal de Desarrollo para **ScorevsApp**, una aplicación cons
 7. **Gestión Atómica de Salas (Crear vs Unirse):** En modo "Crear", una nueva sala empuja inicialmente sus tokens de diseño (`themeDefaults`) a la base de datos. En modo "Unirse", **se debe hidratar (recuperar) primero el tema existente de Firebase** y cargarlo para no corromper la pantalla en uso y evitar "residuos" visuales.
 8. **Sincronización de Datos Proactiva:** Utilizar suscripciones unificadas a la raíz de la sala para garantizar que todos los componentes se actualicen de forma atómica y reactiva.
 9. **Optimización de UI/UX:** Garantizar que los componentes visuales sean consistentes y brinden una experiencia premium.
-10. **Marcador Flotante (OOB Overlay):** Soporte nativo y reactivo para mantener la interacción del marcador a través de una burbuja flotante o Picture-in-Picture cuando la app pasa a segundo plano (`AppState`), traduciendo los tokens visuales al sistema nativo.
+10. **Marcador Flotante (OOB Overlay):** Soporte nativo y reactivo para mantener la interacción del marcador a través de una burbuja flotante o Picture-in-Picture.
+11. **Gesto de Retorno Inteligente:** Implementación de gestos avanzados (Double Tap) en la capa nativa para re-enfocar la aplicación y destruir el overlay de forma elegante.
+12. **Compatibilidad Híbrida (Web/App):** Garantizar paridad total entre los ajustes de la web (OBS) y la app mediante la normalización de tokens de variantes.
 
 ## 🧠 Directrices de Comportamiento del Agente
 - **Priorizar TypeScript:** Usar un tipado estricto en todas las interfaces, especialmente en `ThemeConfig` (incluyendo tokens de tipografía obligatorios).
@@ -25,7 +27,9 @@ Eres el Agente Principal de Desarrollo para **ScorevsApp**, una aplicación cons
 - **Suscripción Única por Pantalla:** Mantener un único listener a la raíz de la sala para asegurar coherencia de datos.
 - **Mapeo de Valores Seguro:** Implementar rangos de seguridad para valores críticos (ej: Opacidad mapeada de 0-100 UI a 65-100 DB).
 - **Sanitización de Datos:** Asegurar que todo ID de sala o usuario sea filtrado (regex `[^a-zA-Z0-9]`) y convertido a minúsculas.
-- **Gestión de Overlay Nativo:** Actualizar optimísticamente la interfaz nativa del `FloatingScoreModule` para evitar retrasos de sincronización con la capa JS en interacciones nativas. Usar Singletons en Android (`FloatingScoreModule.activeContext`) para evitar referencias nulas al `reactContext` con la nueva arquitectura de RN.
+- **Gestión de Overlay Nativo:** Actualizar optimísticamente la interfaz nativa del `FloatingScoreModule` para evitar retrasos de sincronización. El servicio nativo debe usar `parseColorSafe` para manejar formatos CSS (`rgba`, `rgb`) sin crasheos.
+- **Normalización de Datos en DB:** Utilizar `normalizeSettings` en `DatabaseService.ts` para mapear `theme_variant` (Web) a `variant` (App) de forma transparente, asegurando reactividad en cambios remotos.
+- **Doble Tap Foreground:** El overlay nativo debe implementar un `GestureDetector` que dispare el `launchIntentForPackage` al detectar un doble toque, cerrando el servicio con `stopSelf()` tras la transición.
 
 ## Stack Tecnológico
 - **Frontend:** React Native (Hooks, Context/Props para estado centralizado).

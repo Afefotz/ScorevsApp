@@ -11,11 +11,9 @@ ScorevsApp es una avanzada aplicación móvil construida principalmente en **Rea
 
 ## 📸 Vistazo Rápido
 
-| Login | Dashboard | Configuración |
-|:---:|:---:|:---:|
-| <img src="./screenshots/login.png" width="250"/> | <img src="./screenshots/dashboard.png" width="250"/> | <img src="./screenshots/settings.png" width="250"/> |
-
-> **Nota:** Las rutas apuntan a la carpeta local `screenshots/`. Asegúrate de nombrar tus imágenes como `login.png`, `dashboard.png` y `settings.png`.
+| Login | Dashboard | Configuración | Burbuja Flotante
+|:---:|:---:|:---:|:---:|
+| <img src="./screenshots/login.png" width="250"/> | <img src="./screenshots/dashboard.png" width="250"/> | <img src="./screenshots/settings.png" width="250"/> | <img src="./screenshots/burbuja.png" width="250"/>
 
 ---
 
@@ -23,9 +21,11 @@ ScorevsApp es una avanzada aplicación móvil construida principalmente en **Rea
 
 * **Sistema de Salas en Tiempo Real (Create/Join):** Sincronización atómica mediante Firebase Realtime Database.
 * **Temas Dinámicos en Tiempo Real:** 8 variaciones visuales (Win95, Neon, Metal, Modern, etc.) con transiciones limpias y sin residuos de renderizado.
-* **Marcador OOB (Out-of-Bounds):** Implementación nativa de una burbuja flotante/Picture-in-Picture que permite interactuar con el marcador incluso con la app en segundo plano.
+* **Marcador OOB (Out-of-Bounds):** Implementación nativa de una burbuja flotante/Picture-in-Picture con soporte para gestos inteligentes (Doble Tap para regresar a la app).
+* **Normalización Trans-plataforma:** Sincronización perfecta de variantes y temas entre la versión Web (OBS) y la App móvil.
 * **Gestión de Jugadores:** Perfiles con fotos y nombres personalizables.
 * **Gestión de Link para Streaming:** Generación y copiado automático del enlace de overlay para visualización web, facilitando la integración con OBS Studio y plataformas de transmisión.
+* **Estilizado Nativo de Alta Fidelidad:** Motor nativo capaz de renderizar bordes, biseles 3D y colores CSS (rgba) con total paridad visual.
 * **Configuración Avanzada:** Control granular de opacidad, orientación vertical (TikTok mode) y visibilidad de elementos decorativos.
 
 ---
@@ -35,8 +35,8 @@ ScorevsApp es una avanzada aplicación móvil construida principalmente en **Rea
 El éxito de la funcionalidad de la burbuja flotante se debe a una arquitectura que combina lo mejor de ambos mundos:
 
 * **Capa JavaScript (React Native + TS):** Gestiona la lógica de negocio, la navegación y la sincronización con Firebase aplicando principios de **Clean Architecture** para mantener el código modular, escalable y fácil de testear.
-* **Capa Nativa (Java/Kotlin):** Crucial para el desarrollo del **FloatingScoreService**. Al ser una funcionalidad que vive fuera del contexto estándar de una Activity (fuera de los límites de la app), se implementó directamente con las APIs nativas de Android (`WindowManager`, `Service`).
-* **Puente de Comunicación:** Se utiliza un sistema de `NativeModules` para disparar el overlay y `NativeEventEmitter` para devolver las interacciones (clics en la burbuja) al estado global de la aplicación.
+* **Capa Nativa (Java/Kotlin):** Crucial para el desarrollo del **FloatingScoreService**. Incluye un motor de renderizado dinámico que traduce tokens de diseño complejos (biseles Win95, scanlines Neon) a primitivas de Android.
+* **Puente de Comunicación:** Se utiliza un sistema de `NativeModules` para disparar el overlay y `NativeEventEmitter` para devolver las interacciones. Además, implementa `GestureDetector` para funciones avanzadas de navegación.
 
 ---
 

@@ -35,10 +35,12 @@ const MainContent = () => {
     let finalTheme = theme;
 
     if (mode === 'join') {
-      // Rehidratar el tema desde Firebase para no sobreescribir el existente
-      const existingTheme = await dbService.getRoomTheme(newRoomId);
-      if (existingTheme) {
-        finalTheme = existingTheme as ThemeKey;
+      // Rehidratar tema y variante desde Firebase para no sobreescribir el existente
+      const roomSettings = await dbService.getRoomSettings(newRoomId);
+      if (roomSettings?.theme) {
+        finalTheme = roomSettings.theme as ThemeKey;
+        // La variante se sincronizará automáticamente vía DashboardScreen listener,
+        // pero aseguramos el tema inicial aquí.
       }
     } else {
       // Si estamos creando la sala, inicializamos con el tema seleccionado y sus valores atómicos

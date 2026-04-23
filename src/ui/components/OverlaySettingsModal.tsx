@@ -32,13 +32,13 @@ const CustomSlider = ({
   const panResponder = useRef(
     PanResponder.create({
       onStartShouldSetPanResponder: () => true,
-      onMoveShouldSetPanResponder:  () => true,
+      onMoveShouldSetPanResponder: () => true,
       onPanResponderMove: (_, gestureState) => {
-        const touchX  = gestureState.moveX - (Dimensions.get('window').width - containerWidth) / 2;
+        const touchX = gestureState.moveX - (Dimensions.get('window').width - containerWidth) / 2;
         const newValue = Math.round(Math.min(Math.max(touchX / containerWidth, 0), 1) * 100);
         onValueChange(newValue);
       },
-      onPanResponderRelease: () => {},
+      onPanResponderRelease: () => { },
     }),
   ).current;
 
@@ -74,8 +74,11 @@ const CustomSlider = ({
 export const OverlaySettingsModal = ({
   isVisible, onClose, roomId, currentThemeKey,
 }: OverlaySettingsModalProps) => {
-  const tk = useTheme(currentThemeKey);
   const [settings, setSettings] = useState<SettingsData | null>(null);
+
+  // Usar el tema Y VARIANTE actual de los settings para que el modal refleje los cambios instantáneamente
+  const tk = useTheme((settings?.theme as ThemeKey) || currentThemeKey, settings?.variant);
+
   const [copied, setCopied] = useState(false);
 
   const handleCopy = useCallback(() => {
@@ -96,15 +99,15 @@ export const OverlaySettingsModal = ({
       const accentFromDb = data?.accentColor || tkFromDb.primary;
 
       setSettings({
-        theme:       themeFromDb,
-        variant:     data?.variant     || 'default',
+        theme: themeFromDb,
+        variant: data?.variant || 'default',
         accentColor: accentFromDb,
-        opacity:     Math.max(0, Math.min(100, uiOpacity)),
+        opacity: Math.max(0, Math.min(100, uiOpacity)),
         verticalMode: data?.verticalMode ?? false,
-        showPhotos:   data?.showPhotos  ?? true,
-        swapPlayers:  data?.swapPlayers ?? false,
-        customTitle:  data?.customTitle || '',
-        colors:      data?.colors || mapThemeToWebColors(tkFromDb, accentFromDb),
+        showPhotos: data?.showPhotos ?? true,
+        swapPlayers: data?.swapPlayers ?? false,
+        customTitle: data?.customTitle || '',
+        colors: data?.colors || mapThemeToWebColors(tkFromDb, accentFromDb),
       });
     });
     return () => unsubscribe();
@@ -136,16 +139,16 @@ export const OverlaySettingsModal = ({
 
   const handleVariantSelect = useCallback((variantId: string, color: string) => {
     if (!settings) return;
-    
+
     const themeConfig = Themes[settings.theme as ThemeKey];
     if (!themeConfig) return;
 
     const newColors = mapThemeToWebColors(themeConfig, color);
 
-    const updates = { 
-      variant: variantId, 
+    const updates = {
+      variant: variantId,
       accentColor: color,
-      colors: newColors 
+      colors: newColors
     };
 
     setSettings({ ...settings, ...updates });
@@ -167,7 +170,7 @@ export const OverlaySettingsModal = ({
           { backgroundColor: tk.background, borderColor: tk.primary, borderWidth: tk.modalBorderWidth },
         ]}>
           {/* HEADER */}
-          <View style={[styles.header, { 
+          <View style={[styles.header, {
             backgroundColor: tk.primary,
             ...(tk.hasEngravedText && {
               borderTopWidth: 2, borderLeftWidth: 2, borderBottomWidth: 3, borderRightWidth: 2,
@@ -175,12 +178,12 @@ export const OverlaySettingsModal = ({
               borderBottomColor: 'rgba(0,0,0,0.8)', borderRightColor: 'rgba(0,0,0,0.8)',
             }),
           }]}>
-            <Text style={[styles.headerTitle, { 
+            <Text style={[styles.headerTitle, {
               color: tk.background,
               ...(tk.hasEngravedText && {
-                 textShadowColor: 'rgba(255,255,255,0.4)',
-                 textShadowOffset: { width: 1, height: 1 },
-                 textShadowRadius: 1,
+                textShadowColor: 'rgba(255,255,255,0.4)',
+                textShadowOffset: { width: 1, height: 1 },
+                textShadowRadius: 1,
               })
             }]}>CONTROL DE OVERLAY</Text>
             <Pressable onPress={onClose} style={styles.closeBtn}>
@@ -289,8 +292,8 @@ export const OverlaySettingsModal = ({
             <View style={styles.controlGrid}>
               {[
                 { key: 'verticalMode', label: 'MODO VERTICAL (TikTok)', value: settings.verticalMode },
-                { key: 'showPhotos',   label: 'MOSTRAR FOTOS',          value: settings.showPhotos   },
-                { key: 'swapPlayers',  label: 'INVERTIR LADOS (SWAP)',   value: settings.swapPlayers  },
+                { key: 'showPhotos', label: 'MOSTRAR FOTOS', value: settings.showPhotos },
+                { key: 'swapPlayers', label: 'INVERTIR LADOS (SWAP)', value: settings.swapPlayers },
               ].map(({ key, label, value }) => (
                 <View key={key} style={styles.controlItem}>
                   <Text style={[styles.smallLabel, { color: tk.text }]}>{label}</Text>
@@ -348,37 +351,37 @@ export const OverlaySettingsModal = ({
 
 // ─── Estilos ──────────────────────────────────────────────────────────────────
 const styles = StyleSheet.create({
-  backdrop:         { flex: 1, backgroundColor: 'rgba(0,0,0,0.85)', justifyContent: 'center', alignItems: 'center', padding: 15 },
-  modalContainer:   { width: '100%', maxHeight: '90%', borderRadius: 12, overflow: 'hidden', elevation: 25 },
-  header:           { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 16 },
-  headerTitle:      { fontWeight: '900', fontSize: 13, letterSpacing: 1.5 },
-  closeBtn:         { padding: 5 },
-  content:          { padding: 20, paddingBottom: 40 },
-  section:          { marginBottom: 25 },
-  label:            { fontSize: 10, fontWeight: '900', marginBottom: 12, textTransform: 'uppercase', letterSpacing: 1, opacity: 0.6 },
-  input:            { padding: 12, borderRadius: 8, borderWidth: 1, fontSize: 16 },
-  optionsGrid:      { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
-  optionBtn:        { paddingVertical: 10, paddingHorizontal: 10, borderRadius: 6, borderWidth: 1, flex: 1, minWidth: '30%', alignItems: 'center' },
-  optionText:       { fontSize: 10, fontWeight: '900' },
+  backdrop: { flex: 1, backgroundColor: 'rgba(0,0,0,0.85)', justifyContent: 'center', alignItems: 'center', padding: 15 },
+  modalContainer: { width: '100%', maxHeight: '90%', borderRadius: 12, overflow: 'hidden', elevation: 25 },
+  header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 16 },
+  headerTitle: { fontWeight: '900', fontSize: 13, letterSpacing: 1.5 },
+  closeBtn: { padding: 5 },
+  content: { padding: 20, paddingBottom: 40 },
+  section: { marginBottom: 25 },
+  label: { fontSize: 10, fontWeight: '900', marginBottom: 12, textTransform: 'uppercase', letterSpacing: 1, opacity: 0.6 },
+  input: { padding: 12, borderRadius: 8, borderWidth: 1, fontSize: 16 },
+  optionsGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
+  optionBtn: { paddingVertical: 10, paddingHorizontal: 10, borderRadius: 6, borderWidth: 1, flex: 1, minWidth: '30%', alignItems: 'center' },
+  optionText: { fontSize: 10, fontWeight: '900' },
   variantContainer: { flexDirection: 'row', flexWrap: 'wrap', gap: 12 },
-  variantBtn:       { width: 44, height: 44, borderRadius: 22, justifyContent: 'center', alignItems: 'center', elevation: 4 },
-  activeDot:        { width: 12, height: 12, borderRadius: 6 },
-  row:              { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 15 },
-  valueDisplay:     { paddingHorizontal: 12, paddingVertical: 4, borderRadius: 8, fontWeight: '900', fontSize: 12 },
-  sliderContainer:  { height: 40, justifyContent: 'center', marginTop: 10 },
-  sliderWrapper:    { height: 30, justifyContent: 'center' },
-  sliderTrack:      { height: 6, borderRadius: 3, position: 'absolute', width: '100%' },
-  sliderTrackActive:{ height: 6, borderRadius: 3, position: 'absolute' },
-  sliderThumb:      { width: 28, height: 28, borderRadius: 14, borderWidth: 3, position: 'absolute', left: -14, top: 1, elevation: 6, shadowColor: '#000', shadowOffset: { width: 0, height: 3 }, shadowOpacity: 0.3, shadowRadius: 3, justifyContent: 'center', alignItems: 'center' },
+  variantBtn: { width: 44, height: 44, borderRadius: 22, justifyContent: 'center', alignItems: 'center', elevation: 4 },
+  activeDot: { width: 12, height: 12, borderRadius: 6 },
+  row: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 15 },
+  valueDisplay: { paddingHorizontal: 12, paddingVertical: 4, borderRadius: 8, fontWeight: '900', fontSize: 12 },
+  sliderContainer: { height: 40, justifyContent: 'center', marginTop: 10 },
+  sliderWrapper: { height: 30, justifyContent: 'center' },
+  sliderTrack: { height: 6, borderRadius: 3, position: 'absolute', width: '100%' },
+  sliderTrackActive: { height: 6, borderRadius: 3, position: 'absolute' },
+  sliderThumb: { width: 28, height: 28, borderRadius: 14, borderWidth: 3, position: 'absolute', left: -14, top: 1, elevation: 6, shadowColor: '#000', shadowOffset: { width: 0, height: 3 }, shadowOpacity: 0.3, shadowRadius: 3, justifyContent: 'center', alignItems: 'center' },
   sliderValueBadge: { position: 'absolute', top: -35, paddingHorizontal: 8, paddingVertical: 4, borderRadius: 6 },
-  sliderValueText:  { fontSize: 11, fontWeight: 'bold' },
-  controlGrid:      { borderTopWidth: 1, borderBottomWidth: 1, borderColor: 'rgba(150,150,150,0.1)', marginVertical: 10, paddingVertical: 10 },
-  controlItem:      { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: 8 },
-  smallLabel:       { fontSize: 10, fontWeight: 'bold', textTransform: 'uppercase' },
-  linkRow:          { flexDirection: 'row', gap: 10, alignItems: 'center' },
-  linkInput:        { fontSize: 13, paddingVertical: 10 },
-  copyBtn:          { paddingHorizontal: 15, paddingVertical: 12, borderRadius: 8, minWidth: 90, alignItems: 'center' },
-  copyBtnText:      { fontWeight: '900', fontSize: 11, letterSpacing: 1 },
-  saveBtn:          { padding: 20, alignItems: 'center' },
-  saveBtnText:      { fontWeight: '900', fontSize: 16, letterSpacing: 2 },
+  sliderValueText: { fontSize: 11, fontWeight: 'bold' },
+  controlGrid: { borderTopWidth: 1, borderBottomWidth: 1, borderColor: 'rgba(150,150,150,0.1)', marginVertical: 10, paddingVertical: 10 },
+  controlItem: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: 8 },
+  smallLabel: { fontSize: 10, fontWeight: 'bold', textTransform: 'uppercase' },
+  linkRow: { flexDirection: 'row', gap: 10, alignItems: 'center' },
+  linkInput: { fontSize: 13, paddingVertical: 10 },
+  copyBtn: { paddingHorizontal: 15, paddingVertical: 12, borderRadius: 8, minWidth: 90, alignItems: 'center' },
+  copyBtnText: { fontWeight: '900', fontSize: 11, letterSpacing: 1 },
+  saveBtn: { padding: 20, alignItems: 'center' },
+  saveBtnText: { fontWeight: '900', fontSize: 16, letterSpacing: 2 },
 });

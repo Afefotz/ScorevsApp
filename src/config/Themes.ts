@@ -94,6 +94,8 @@ export interface ThemeConfig {
   textShadowColor: string;
   textShadowOffset: { width: number; height: number };
   textShadowRadius: number;
+  /** Neon/Laser: color de scanlines */
+  scanlinesColor: string;
 }
 
 /**
@@ -203,6 +205,7 @@ export const Themes: Record<string, ThemeConfig> = {
     textShadowColor: 'transparent',
     textShadowOffset: { width: 0, height: 0 },
     textShadowRadius: 0,
+    scanlinesColor: 'transparent',
     variants: [
       { id: 'Clásico Win95', label: 'Clásico Win95', color: '#c0c0c0' },
     ],
@@ -282,6 +285,7 @@ export const Themes: Record<string, ThemeConfig> = {
     textShadowColor: '#00f3ff', // Se sobreescribe en variantes
     textShadowOffset: { width: 0, height: 0 },
     textShadowRadius: 6,
+    scanlinesColor: '#2200FF41',
     variants: [
       { id: 'Cian (Por defecto)', label: 'Cian', color: '#00ffff' },
       { 
@@ -380,6 +384,7 @@ export const Themes: Record<string, ThemeConfig> = {
     textShadowColor: 'rgba(0,0,0,0.6)',
     textShadowOffset: { width: 1, height: 1 },
     textShadowRadius: 1,
+    scanlinesColor: 'transparent',
   },
   
   'theme-modern': {
@@ -471,6 +476,7 @@ export const Themes: Record<string, ThemeConfig> = {
     textShadowColor: 'transparent',
     textShadowOffset: { width: 0, height: 0 },
     textShadowRadius: 0,
+    scanlinesColor: 'transparent',
   },
 
   'theme-modern-light': {
@@ -558,6 +564,7 @@ export const Themes: Record<string, ThemeConfig> = {
     textShadowColor: 'transparent',
     textShadowOffset: { width: 0, height: 0 },
     textShadowRadius: 0,
+    scanlinesColor: 'transparent',
   },
 
   'theme-pastel': {
@@ -652,6 +659,7 @@ export const Themes: Record<string, ThemeConfig> = {
     textShadowColor: 'transparent',
     textShadowOffset: { width: 0, height: 0 },
     textShadowRadius: 0,
+    scanlinesColor: 'transparent',
   },
 
   'theme-stone': {
@@ -739,6 +747,7 @@ export const Themes: Record<string, ThemeConfig> = {
     textShadowColor: 'rgba(255,255,255,0.1)',
     textShadowOffset: { width: 1, height: 1 },
     textShadowRadius: 2,
+    scanlinesColor: 'transparent',
   },
 
   'theme-laser': {
@@ -833,6 +842,7 @@ export const Themes: Record<string, ThemeConfig> = {
     textShadowColor: '#ff0000',
     textShadowOffset: { width: 0, height: 0 },
     textShadowRadius: 6,
+    scanlinesColor: '#FF000033',
   },
 
   'theme-paper': {
@@ -936,6 +946,7 @@ export const Themes: Record<string, ThemeConfig> = {
     textShadowColor: 'rgba(0,0,0,0.15)',
     textShadowOffset: { width: 0.5, height: 0.5 },
     textShadowRadius: 1,
+    scanlinesColor: 'transparent',
   },
 };
 

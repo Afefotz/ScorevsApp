@@ -14,8 +14,18 @@ export interface OverlayConfig {
     background: string;
     text: string;
     primary: string;
+    border: string;
+    btnBg: string;
+    btnTextColor: string;
+    btnBorderColor: string;
+    btnBorderRadius: number;
     hasBevel: boolean;
     hasScanlines: boolean;
+    themeId: string;
+    imageShape: "circle" | "rounded-square" | "bevel-square";
+    fontMono: boolean;
+    scanlinesColor: string;
+    scaleFactor: number;
   };
 }
 

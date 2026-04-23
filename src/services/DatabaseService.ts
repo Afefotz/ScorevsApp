@@ -28,15 +28,16 @@ export interface SettingsData {
 
 class DatabaseService {
   private db = database();
-  
+
   private normalizeSettings(settings: any, roomRoot?: any): SettingsData {
     if (!settings && !roomRoot) return {} as SettingsData;
-    
+
     const s = settings || {};
+    const resolvedVariant = roomRoot?.theme_variant || s.theme_variant || s.variant || 'default';
+
     return {
       ...s,
-      // Normalization bridge: prefer theme_variant if present (from web, either root or settings)
-      variant: roomRoot?.theme_variant || s.theme_variant || s.variant || 'default',
+      variant: resolvedVariant,
     };
   }
 
@@ -122,6 +123,14 @@ class DatabaseService {
   async getRoomTheme(roomId: string): Promise<string | null> {
     const snapshot = await this.db.ref(`/rooms/${roomId}/settings/theme`).once('value');
     return snapshot.exists() ? snapshot.val() : null;
+  }
+
+  // Obtener todos los ajustes actuales (incluyendo variante)
+  async getRoomSettings(roomId: string): Promise<SettingsData | null> {
+    const snapshot = await this.db.ref(`/rooms/${roomId}`).once('value');
+    if (!snapshot.exists()) return null;
+    const data = snapshot.val();
+    return this.normalizeSettings(data.settings, data);
   }
 }
 
