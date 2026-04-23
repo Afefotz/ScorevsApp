@@ -9,6 +9,7 @@ export interface PlayerData {
 export interface SettingsData {
   theme: string;
   variant: string;
+  theme_variant?: string;
   accentColor: string;
   opacity: number;
   verticalMode: boolean;
@@ -27,6 +28,16 @@ export interface SettingsData {
 
 class DatabaseService {
   private db = database();
+  
+  private normalizeSettings(settings: any): SettingsData {
+    if (!settings) return {} as SettingsData;
+    
+    return {
+      ...settings,
+      // Normalization bridge: prefer theme_variant if present (from web)
+      variant: settings.theme_variant || settings.variant || 'default',
+    };
+  }
 
   listenToPlayers(roomId: string, callback: (players: any) => void) {
     const reference = this.db.ref(`/rooms/${roomId}`);
