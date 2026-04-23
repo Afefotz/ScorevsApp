@@ -99,7 +99,8 @@ class DatabaseService {
   listenToSettings(roomId: string, callback: (settings: SettingsData) => void) {
     const reference = this.db.ref(`/rooms/${roomId}/settings`);
     reference.on('value', snapshot => {
-      callback(snapshot.val() || {} as SettingsData);
+      const data = snapshot.val();
+      callback(this.normalizeSettings(data));
     });
     return () => reference.off('value');
   }
